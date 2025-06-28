@@ -1,5 +1,5 @@
 > [!Caution]
-> This Repo is in an Early Preview state, meaning that everythings are subject to change
+> This Repo is in an Early Preview state, meaning that everything is subject to change
 
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sensum365/SimpleRag/Build.yml?style=for-the-badge)](https://github.com/sensum365/SimpleRag/actions)
 [![GitHub Issues or Pull Requests by label](https://img.shields.io/github/issues/sensum365/SimpleRag/bug?style=for-the-badge&label=Bugs)](https://github.com/sensum365/SimpleRag/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)
@@ -7,7 +7,7 @@
 
 
 # SimpleRag
-A Simple and Opinionated AI RAG Solutions for SourceCode
+A Simple and Opinionated AI RAG Solutions for SourceCode, where you just need to setup and point to your source and we take care of the rest.
 
 [![NuGet](https://img.shields.io/badge/NuGet-blue?style=for-the-badge)](https://www.nuget.org/packages/SimpleRag)
 
@@ -31,7 +31,7 @@ string githubToken = builder.Configuration["GitHubToken"]!;
 //Setup Embedding Generator
 builder.Services.AddAzureOpenAIEmbeddingGenerator(embeddingDeploymentName, endpoint, key);
 
-//Setup SimpleRag (use .AddSimpleRag(...) instead if you do not wish to use github as Datasource)
+//Setup SimpleRag (use .AddSimpleRag(...) instead if you do not wish to use GitHub as Datasource)
 builder.Services.AddSimpleRagWithGithubIntegration(new VectorStoreConfiguration(Constants.VectorStoreName, Constants.MaxRecords), options => new SqlServerVectorStore(sqlServerConnectionString, new SqlServerVectorStoreOptions
 {
     EmbeddingGenerator = options.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>()
