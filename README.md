@@ -9,7 +9,7 @@
 # SimpleRag
 A Simple and Opinionated AI RAG Solutions for SourceCode
 
-[![NuGet](https://img.shields.io/badge/NuGet-blue?style=for-the-badge)](https://www.nuget.org/packages/TrelloDotNet)
+[![NuGet](https://img.shields.io/badge/NuGet-blue?style=for-the-badge)](https://www.nuget.org/packages/SimpleRag)
 
 ## Getting Started
 

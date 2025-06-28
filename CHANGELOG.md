@@ -1,5 +1,10 @@
 # Changelog: SimpleRag
 
+## Unreleased
+- Fixed NuGet Link in ReadMe
+
+---
+
 ## Version 0.0.1-preview2
 - Fixed Changelog path in Nuget Package
 - Added initial data in ReadMe (more will come later)
