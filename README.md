@@ -54,7 +54,6 @@ await cSharpSourceCommand.IngestGitHubAsync(new CSharpDataSourceGitHub
     GitHubOwner = gitHubOwner,
     GitHubRepo = gitHubRepo
 });
-cSharpSourceCommand.NotifyProgress -= NotifyProgress;
 
 markdownSourceCommand.NotifyProgress += NotifyProgress;
 await markdownSourceCommand.IngestGitHubAsync(new MarkdownDataSourceGitHub
@@ -65,9 +64,8 @@ await markdownSourceCommand.IngestGitHubAsync(new MarkdownDataSourceGitHub
     Path = "/",
     GitHubOwner = gitHubOwner,
     GitHubRepo = gitHubRepo
-    LevelsToChunk = 3,
+    LevelsToChunk = 3
 });
-markdownSourceCommand.NotifyProgress -= NotifyProgress;
 ```
 
 ### Step 4: Search your VectorStore
