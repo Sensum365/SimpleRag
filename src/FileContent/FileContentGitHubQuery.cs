@@ -62,8 +62,8 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
                 continue;
             }
 
-            OnNotifyProgress("Downloading files from GitHub", counter, items.Length);
             var pathWithoutRoot = path.Replace(source.Path, string.Empty);
+            OnNotifyProgress("Downloading file from GitHub", counter, items.Length, pathWithoutRoot);
             var content = await gitHubQuery.GetFileContentAsync(gitHubClient, source.GitHubOwner, source.GitHubRepo, path);
             if (string.IsNullOrWhiteSpace(content))
             {

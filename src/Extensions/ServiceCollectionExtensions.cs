@@ -9,6 +9,7 @@ namespace SimpleRag.Extensions;
 
 public static class ServiceCollectionExtensions
 {
+    //todo - add option for keyed services
     public static void AddSimpleRag<T>(
         this IServiceCollection services,
         VectorStoreConfiguration configuration,
@@ -38,5 +39,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<FileContentGitHubQuery>();
         services.AddScoped<FileContentLocalQuery>();
         services.AddSingleton(new GitHubConnection(githubPatToken));
+        services.AddScoped<Ingestion>();
+        services.AddScoped<Search>();
     }
 }

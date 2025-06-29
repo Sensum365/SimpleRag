@@ -11,7 +11,7 @@
 		<Description>.NET Implementation of a simple and opinionated RAG solution</Description>
 		<Copyright>2025</Copyright>
 		<PackageTags>RAG .NET</PackageTags>
-		<Version>0.0.1-preview2</Version>
+		<Version>0.0.1-preview3</Version>
 		<Company>Sensum365.com</Company>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<IncludeSymbols>true</IncludeSymbols>

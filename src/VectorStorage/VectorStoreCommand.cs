@@ -1,13 +1,12 @@
 ﻿using System.Linq.Expressions;
 using JetBrains.Annotations;
 using Microsoft.Extensions.VectorData;
-using SimpleRag.Interfaces;
 using SimpleRag.VectorStorage.Models;
 
 namespace SimpleRag.VectorStorage;
 
 [UsedImplicitly]
-public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration) : IScopedService
+public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration)
 {
     private bool _creationEnsured;
 

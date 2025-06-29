@@ -4,6 +4,7 @@ using SimpleRag.DataSources.CSharp.Models;
 using SimpleRag.DataSources.Models;
 using SimpleRag.FileContent;
 using SimpleRag.Helpers;
+using SimpleRag.Models;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 
@@ -24,7 +25,7 @@ public class CSharpDataSourceCommand(
     /// </summary>
     /// <param name="source">The Source to ingest</param>
     /// <param name="contentFormatBuilder">Builder of the desired format of the Content to be vectorized or leave null to use the default provided format</param>
-    public async Task IngestLocalAsync(CSharpDataSourceLocal source, Func<CSharpChunk, string>? contentFormatBuilder = null)
+    public async Task IngestAsync(CSharpDataSourceLocal source, Func<CSharpChunk, string>? contentFormatBuilder = null)
     {
         Guards(source);
         localFilesQuery.NotifyProgress += OnNotifyProgress;
@@ -50,7 +51,7 @@ public class CSharpDataSourceCommand(
     /// </summary>
     /// <param name="source">The Source to ingest</param>
     /// <param name="contentFormatBuilder">Builder of the desired format of the Content to be vectorized or leave null to use the default provided format</param>
-    public async Task IngestGitHubAsync(CSharpDataSourceGitHub source, Func<CSharpChunk, string>? contentFormatBuilder = null)
+    public async Task IngestAsync(CSharpDataSourceGitHub source, Func<CSharpChunk, string>? contentFormatBuilder = null)
     {
         Guards(source);
         gitHubFilesQuery.NotifyProgress += OnNotifyProgress;
@@ -182,7 +183,7 @@ public class CSharpDataSourceCommand(
         var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
         if (idsToDelete.Count != 0)
         {
-            OnNotifyProgress("Removing entities that are no longer in source...");
+            OnNotifyProgress($"Removing {idsToDelete.Count} entities that are no longer in source...");
             await vectorStoreCommand.DeleteAsync(idsToDelete);
         }
 

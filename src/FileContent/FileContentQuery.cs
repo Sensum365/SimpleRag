@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using SimpleRag.FileContent.Models;
+using SimpleRag.Models;
 
 namespace SimpleRag.FileContent;
 

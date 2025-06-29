@@ -1,13 +1,12 @@
 using System.Text;
 using JetBrains.Annotations;
 using Octokit;
-using SimpleRag.Interfaces;
 using ProductHeaderValue = Octokit.ProductHeaderValue;
 
 namespace SimpleRag.Integrations.GitHub;
 
 [UsedImplicitly]
-public class GitHubQuery(GitHubConnection connection) : IScopedService
+public class GitHubQuery(GitHubConnection connection)
 {
     public bool IsGitHubTokenProvided => !string.IsNullOrWhiteSpace(connection.GitHubToken);
 

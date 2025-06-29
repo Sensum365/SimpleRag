@@ -6,6 +6,7 @@ using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 using System.Text.RegularExpressions;
 using SimpleRag.Helpers;
+using SimpleRag.Models;
 
 namespace SimpleRag.DataSources.Markdown;
 
@@ -19,7 +20,7 @@ public class MarkdownDataSourceCommand(
 {
     public const string SourceKind = "Markdown";
 
-    public async Task IngestLocalAsync(MarkdownDataSourceLocal dataSource)
+    public async Task IngestAsync(MarkdownDataSourceLocal dataSource)
     {
         Guards(dataSource);
 
@@ -35,7 +36,7 @@ public class MarkdownDataSourceCommand(
         await IngestAsync(dataSource, rawFiles);
     }
 
-    public async Task IngestGitHubAsync(MarkdownDataSourceGitHub dataSource)
+    public async Task IngestAsync(MarkdownDataSourceGitHub dataSource)
     {
         Guards(dataSource);
 
@@ -93,7 +94,7 @@ public class MarkdownDataSourceCommand(
                 {
                     Id = Guid.NewGuid().ToString(),
                     ContentKind = "Markdown",
-                    Content = $"{fileNameWithoutExtension} - {x.Name}{newLine}---{newLine}{x.Content}",
+                    Content = $"{fileNameWithoutExtension} - {x.Name}{newLine}---{newLine}{x.Content}", //todo - support Content format builder
                     ContentId = x.ChunkId,
                     ContentName = x.Name,
                     SourceId = source.Id,
@@ -118,7 +119,7 @@ public class MarkdownDataSourceCommand(
                     SourceCollectionId = source.CollectionId,
                     SourcePath = rawFile.PathWithoutRoot,
                     ContentKind = "Markdown",
-                    Content = $"{fileNameWithoutExtension}{newLine}---{newLine}{content}",
+                    Content = $"{fileNameWithoutExtension}{newLine}---{newLine}{content}", //todo - support Content format builder
                     ContentName = fileNameWithoutExtension,
                     ContentId = null,
                     ContentParent = null,
@@ -153,7 +154,7 @@ public class MarkdownDataSourceCommand(
         var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
         if (idsToDelete.Count != 0)
         {
-            OnNotifyProgress("Removing entities that are no longer in source");
+            OnNotifyProgress($"Removing {idsToDelete.Count} entities that are no longer in source");
             await vectorStoreCommand.DeleteAsync(idsToDelete);
         }
 

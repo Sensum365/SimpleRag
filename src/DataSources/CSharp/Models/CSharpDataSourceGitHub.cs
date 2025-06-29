@@ -5,8 +5,8 @@ namespace SimpleRag.DataSources.CSharp.Models;
 
 public class CSharpDataSourceGitHub : DataSource
 {
-    public required string? GitHubOwner { get; set; }
-    public required string? GitHubRepo { get; set; }
+    public required string GitHubOwner { get; set; }
+    public required string GitHubRepo { get; set; }
     public DateTimeOffset? GitHubLastCommitTimestamp { get; set; }
 
     public FileContentSourceGitHub AsFileContentSource()

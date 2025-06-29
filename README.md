@@ -40,45 +40,59 @@ builder.Services.AddSimpleRagWithGithubIntegration(new VectorStoreConfiguration(
 
 ### Step 3: Ingest Data into your VectorStore (in this sample the [TrelloDotNet](https://github.com/rwjdk/TrelloDotNet) open-source repo)
 ```csharp
-string gitHubOwner = "rwjdk";
-string gitHubRepo = "TrelloDotNet";
-
-cSharpSourceCommand.NotifyProgress += NotifyProgress;
-
-await cSharpSourceCommand.IngestGitHubAsync(new CSharpDataSourceGitHub
+public class IngestionExample(Ingestion ingestion)
 {
-    CollectionId = "MyCollectionId",
-    Id = "Code",
-    Recursive = true,
-    Path = "src",
-    GitHubOwner = gitHubOwner,
-    GitHubRepo = gitHubRepo
-});
+    public async Task Sync()
+    {
+        string gitHubOwner = "rwjdk";
+        string gitHubRepo = "TrelloDotNet";
 
-markdownSourceCommand.NotifyProgress += NotifyProgress;
-await markdownSourceCommand.IngestGitHubAsync(new MarkdownDataSourceGitHub
-{
-    CollectionId = "MyCollectionId",
-    Id = "Markdown",
-    Recursive = true,
-    Path = "/",
-    GitHubOwner = gitHubOwner,
-    GitHubRepo = gitHubRepo
-    LevelsToChunk = 3
-});
+        ingestion.NotifyProgress += NotifyProgress;
+
+        await ingestion.IngestAsync(
+        [
+            new CSharpDataSourceGitHub
+            {
+                CollectionId = Constants.CollectionId,
+                Id = Constants.SourceIdCode,
+                Recursive = true,
+                Path = "src",
+                FileIgnorePatterns = "TrelloDotNet.Tests",
+                GitHubOwner = gitHubOwner,
+                GitHubRepo = gitHubRepo,
+            },
+            new MarkdownDataSourceGitHub
+            {
+                CollectionId = Constants.CollectionId,
+                Id = Constants.SourceIdMarkdownInCode,
+                Recursive = true,
+                Path = "/",
+                GitHubOwner = gitHubOwner,
+                GitHubRepo = gitHubRepo,
+                LevelsToChunk = 3,
+            }
+        ]);
+    }
+
+    private void NotifyProgress(ProgressNotification obj)
+    {
+        Console.WriteLine(obj.GetFormattedMessageWithDetails());
+    }
+}
 ```
 
 ### Step 4: Search your VectorStore
 ```csharp
-public class SearchExample(VectorStoreQuery vectorStoreQuery)
+public class SearchExample(Search search)
 {
     public async Task<string> SearchAsync(string question)
     {
-        SearchResult searchResult = await vectorStoreQuery.SearchAsync(
-            searchQuery: question, 
-            numberOfRecordsBack: 10, 
-            filter: entity => entity.SourceCollectionId == "MyCollectionId");
-
+        SearchResult searchResult = await search.SearchAsync(new SearchOptions
+        {
+            SearchQuery = searchQuery,
+            NumberOfRecordsBack = 10,
+            Filter = entity => entity.SourceCollectionId == Constants.CollectionId
+        });
         return searchResult.GetAsStringResult();
     }
 }
