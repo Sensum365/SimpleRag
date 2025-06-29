@@ -5,7 +5,6 @@
 - Removed Interfaces folder (not used)
 - Moved Notification system into Models folder
 - Added TopLevel Ingestion and Search classes for easier usage
-- Switched to slnx file
 
 ---
 
