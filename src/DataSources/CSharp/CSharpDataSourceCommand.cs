@@ -101,7 +101,7 @@ public class CSharpDataSourceCommand(
             string parentDetails = string.Empty;
             if (!string.IsNullOrWhiteSpace(chunk.Parent))
             {
-                parentDetails = $" parent=\"{chunk.ParentKindAsString}\" parent=\"{chunk.Parent}\"";
+                parentDetails = $" parentKind=\"{chunk.ParentKindAsString}\" parent=\"{chunk.Parent}\"";
             }
 
             sb.AppendLine($"<code name=\"{chunk.Name}\" kind=\"{chunk.KindAsString}\" namespace=\"{chunk.Namespace}\"{parentDetails}>");

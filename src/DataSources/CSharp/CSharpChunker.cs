@@ -141,7 +141,7 @@ namespace SimpleRag.DataSources.CSharp
                     result.Add(new CSharpChunk(CSharpKind.Constructor, ns, parent, parentKind, name, xmlSummary, content.ToString(), dependencies, constructor));
                 }
 
-                if (properties.Length != 0 || constants.Length != 0 || implicitOperators.Length != 0)
+                //Entry itself
                 {
                     //Store the Type itself with everything but the Methods
                     string name = node.Identifier.ValueText;
