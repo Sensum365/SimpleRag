@@ -25,20 +25,20 @@ public class CSharpDataSourceCommand(
     /// </summary>
     /// <param name="source">The Source to ingest</param>
     /// <param name="contentFormatBuilder">Builder of the desired format of the Content to be vectorized or leave null to use the default provided format</param>
-    public async Task IngestAsync(CSharpDataSourceLocal source, Func<CSharpChunk, string>? contentFormatBuilder = null)
+    public async Task IngestAsync(CSharpDataSourceLocal source, Func<CSharpChunk, string>? contentFormatBuilder = null, CancellationToken cancellationToken = default)
     {
         Guards(source);
         localFilesQuery.NotifyProgress += OnNotifyProgress;
         try
         {
-            FileContent.Models.FileContent[]? files = await localFilesQuery.GetRawContentForSourceAsync(source.AsFileContentSource(), "cs");
+            FileContent.Models.FileContent[]? files = await localFilesQuery.GetRawContentForSourceAsync(source.AsFileContentSource(), "cs", cancellationToken);
             if (files == null)
             {
                 OnNotifyProgress("Nothing new to Ingest so skipping");
                 return;
             }
 
-            await IngestAsync(source, contentFormatBuilder, files);
+            await IngestAsync(source, contentFormatBuilder, files, cancellationToken);
         }
         finally
         {
@@ -51,20 +51,20 @@ public class CSharpDataSourceCommand(
     /// </summary>
     /// <param name="source">The Source to ingest</param>
     /// <param name="contentFormatBuilder">Builder of the desired format of the Content to be vectorized or leave null to use the default provided format</param>
-    public async Task IngestAsync(CSharpDataSourceGitHub source, Func<CSharpChunk, string>? contentFormatBuilder = null)
+    public async Task IngestAsync(CSharpDataSourceGitHub source, Func<CSharpChunk, string>? contentFormatBuilder = null, CancellationToken cancellationToken = default)
     {
         Guards(source);
         gitHubFilesQuery.NotifyProgress += OnNotifyProgress;
         try
         {
-            FileContent.Models.FileContent[]? files = await gitHubFilesQuery.GetRawContentForSourceAsync(source.AsFileContentSource(), "cs");
+            FileContent.Models.FileContent[]? files = await gitHubFilesQuery.GetRawContentForSourceAsync(source.AsFileContentSource(), "cs", cancellationToken);
             if (files == null)
             {
                 OnNotifyProgress("Nothing new to Ingest so skipping");
                 return;
             }
 
-            await IngestAsync(source, contentFormatBuilder, files);
+            await IngestAsync(source, contentFormatBuilder, files, cancellationToken);
         }
         finally
         {
@@ -72,7 +72,7 @@ public class CSharpDataSourceCommand(
         }
     }
 
-    private async Task IngestAsync(DataSource source, Func<CSharpChunk, string>? contentFormatBuilder, FileContent.Models.FileContent[] files)
+    private async Task IngestAsync(DataSource source, Func<CSharpChunk, string>? contentFormatBuilder, FileContent.Models.FileContent[] files, CancellationToken cancellationToken = default)
     {
         List<CSharpChunk> codeEntities = [];
 
@@ -138,7 +138,7 @@ public class CSharpDataSourceCommand(
             }
         }
 
-        VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceId == source.Id);
+        VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceId == source.Id, cancellationToken);
 
         int counter = 0;
         List<string> idsToKeep = [];
@@ -172,7 +172,7 @@ public class CSharpDataSourceCommand(
             var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == entity.GetContentCompareKey());
             if (existing == null)
             {
-                await RetryHelper.ExecuteWithRetryAsync(async () => { await vectorStoreCommand.UpsertAsync(entity); }, 3, TimeSpan.FromSeconds(30));
+                await RetryHelper.ExecuteWithRetryAsync(async () => { await vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
             }
             else
             {
@@ -184,7 +184,7 @@ public class CSharpDataSourceCommand(
         if (idsToDelete.Count != 0)
         {
             OnNotifyProgress($"Removing {idsToDelete.Count} entities that are no longer in source...");
-            await vectorStoreCommand.DeleteAsync(idsToDelete);
+            await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
         }
 
         OnNotifyProgress("Done");

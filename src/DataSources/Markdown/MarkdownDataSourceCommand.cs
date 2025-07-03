@@ -20,39 +20,39 @@ public class MarkdownDataSourceCommand(
 {
     public const string SourceKind = "Markdown";
 
-    public async Task IngestAsync(MarkdownDataSourceLocal dataSource)
+    public async Task IngestAsync(MarkdownDataSourceLocal dataSource, CancellationToken cancellationToken = default)
     {
         Guards(dataSource);
 
         localFileContentQuery.NotifyProgress += OnNotifyProgress;
 
-        FileContent.Models.FileContent[]? rawFiles = await localFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md");
+        FileContent.Models.FileContent[]? rawFiles = await localFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md", cancellationToken);
         if (rawFiles == null)
         {
             OnNotifyProgress("Nothing new to Ingest so skipping");
             return;
         }
 
-        await IngestAsync(dataSource, rawFiles);
+        await IngestAsync(dataSource, rawFiles, cancellationToken);
     }
 
-    public async Task IngestAsync(MarkdownDataSourceGitHub dataSource)
+    public async Task IngestAsync(MarkdownDataSourceGitHub dataSource, CancellationToken cancellationToken = default)
     {
         Guards(dataSource);
 
         gitHubFileContentQuery.NotifyProgress += OnNotifyProgress;
 
-        FileContent.Models.FileContent[]? rawFiles = await gitHubFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md");
+        FileContent.Models.FileContent[]? rawFiles = await gitHubFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md", cancellationToken);
         if (rawFiles == null)
         {
             OnNotifyProgress("Nothing new to Ingest so skipping");
             return;
         }
 
-        await IngestAsync(dataSource, rawFiles);
+        await IngestAsync(dataSource, rawFiles, cancellationToken);
     }
 
-    private async Task IngestAsync(MarkdownSource source, FileContent.Models.FileContent[] rawFiles)
+    private async Task IngestAsync(MarkdownSource source, FileContent.Models.FileContent[] rawFiles, CancellationToken cancellationToken = default)
     {
         List<VectorEntity> entries = [];
 
@@ -132,7 +132,7 @@ public class MarkdownDataSourceCommand(
             }
         }
 
-        var existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceId == source.Id);
+        var existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceId == source.Id, cancellationToken);
 
         int counter = 0;
         List<string> idsToKeep = [];
@@ -143,7 +143,7 @@ public class MarkdownDataSourceCommand(
             var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == entity.GetContentCompareKey());
             if (existing == null)
             {
-                await RetryHelper.ExecuteWithRetryAsync(async () => { await vectorStoreCommand.UpsertAsync(entity); }, 3, TimeSpan.FromSeconds(30));
+                await RetryHelper.ExecuteWithRetryAsync(async () => { await vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
             }
             else
             {
@@ -155,7 +155,7 @@ public class MarkdownDataSourceCommand(
         if (idsToDelete.Count != 0)
         {
             OnNotifyProgress($"Removing {idsToDelete.Count} entities that are no longer in source");
-            await vectorStoreCommand.DeleteAsync(idsToDelete);
+            await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
         }
 
         OnNotifyProgress("Done");

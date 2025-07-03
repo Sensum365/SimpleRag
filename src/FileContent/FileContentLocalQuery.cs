@@ -7,7 +7,7 @@ namespace SimpleRag.FileContent;
 [UsedImplicitly]
 public class FileContentLocalQuery : FileContentQuery
 {
-    internal async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceLocal source, string fileExtensionType)
+    internal async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceLocal source, string fileExtensionType, CancellationToken cancellationToken = default)
     {
         SharedGuards(source);
 
@@ -29,7 +29,7 @@ public class FileContentLocalQuery : FileContentQuery
             counter++;
             OnNotifyProgress("Parsing Local files from Disk", counter, files.Length);
             var pathWithoutRoot = path.Replace(source.Path, string.Empty);
-            string content = await System.IO.File.ReadAllTextAsync(path, Encoding.UTF8);
+            string content = await System.IO.File.ReadAllTextAsync(path, Encoding.UTF8, cancellationToken);
             result.Add(new Models.FileContent(path, content, pathWithoutRoot));
         }
 

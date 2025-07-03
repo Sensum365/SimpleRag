@@ -90,7 +90,7 @@ namespace SimpleRag.DataSources.CSharp
                 string name = node.Identifier.ValueText;
                 var parent = GetParentFromNesting(node.Parent);
                 CSharpKind parentKind = GetParentType(node.Parent);
-                result.Add(new CSharpChunk(CSharpKind.Enum, ns, parent, parentKind, name, xmlSummary, RemoveAttributes(node).ToString(), [], node));
+                result.Add(new CSharpChunk(CSharpKind.Enum, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], node));
             }
 
             return result;
@@ -129,7 +129,7 @@ namespace SimpleRag.DataSources.CSharp
                 }
 
                 //Store constructors separately
-                foreach (ConstructorDeclarationSyntax constructor in constructors.Where(x => x.ParameterList.Parameters.Count > 0))
+                foreach (ConstructorDeclarationSyntax constructor in constructors)
                 {
                     string name = constructor.Identifier.ValueText;
                     string xmlSummary = GetXmlSummary(constructor);
@@ -241,26 +241,6 @@ namespace SimpleRag.DataSources.CSharp
         private static PropertyDeclarationSyntax RemoveAttributes(PropertyDeclarationSyntax property)
         {
             return property.WithAttributeLists(SyntaxFactory.List<AttributeListSyntax>());
-        }
-
-        private static EnumDeclarationSyntax RemoveAttributes(EnumDeclarationSyntax enumDecl)
-        {
-            var enumTrivia = enumDecl.GetLeadingTrivia();
-
-            enumDecl = enumDecl
-                .WithAttributeLists([])
-                .WithLeadingTrivia(enumTrivia);
-
-            var newMembers = SyntaxFactory.SeparatedList(
-                enumDecl.Members.Select(m =>
-                {
-                    var memberTrivia = m.GetLeadingTrivia();
-                    return m.WithAttributeLists([])
-                        .WithLeadingTrivia(memberTrivia);
-                })
-            );
-
-            return enumDecl.WithMembers(newMembers);
         }
 
         private static string GetXmlSummary(SyntaxNode node)

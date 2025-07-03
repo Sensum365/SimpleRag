@@ -7,7 +7,7 @@ using SimpleRag.Models;
 
 namespace SimpleRag;
 
-public class Ingestion : ProgressNotificationBase, IDisposable
+public class Ingestion
 {
     private readonly CSharpDataSourceCommand _cSharpDataSourceCommand;
     private readonly MarkdownDataSourceCommand _markdownDataSourceCommand;
@@ -16,35 +16,45 @@ public class Ingestion : ProgressNotificationBase, IDisposable
     {
         _cSharpDataSourceCommand = cSharpDataSourceCommand;
         _markdownDataSourceCommand = markdownDataSourceCommand;
-        _cSharpDataSourceCommand.NotifyProgress += OnNotifyProgress;
-        _markdownDataSourceCommand.NotifyProgress += OnNotifyProgress;
     }
 
-    public async Task IngestAsync(IEnumerable<DataSource> dataSources, IngestionOptions? options = null)
+    public async Task IngestAsync(IEnumerable<DataSource> dataSources, IngestionOptions? options = null, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
-        foreach (DataSource source in dataSources)
+        try
         {
-            switch (source)
+            if (onProgressNotification != null)
             {
-                case CSharpDataSourceLocal cSharpDataSourceLocal:
-                    await _cSharpDataSourceCommand.IngestAsync(cSharpDataSourceLocal, options?.CSharpContentFormatBuilder);
-                    break;
-                case CSharpDataSourceGitHub cSharpDataSourceGitHub:
-                    await _cSharpDataSourceCommand.IngestAsync(cSharpDataSourceGitHub, options?.CSharpContentFormatBuilder);
-                    break;
-                case MarkdownDataSourceLocal markdownDataSourceLocal:
-                    await _markdownDataSourceCommand.IngestAsync(markdownDataSourceLocal); //todo support content format builder
-                    break;
-                case MarkdownDataSourceGitHub markdownDataSourceGitHub:
-                    await _markdownDataSourceCommand.IngestAsync(markdownDataSourceGitHub); //todo support content format builder
-                    break;
+                _cSharpDataSourceCommand.NotifyProgress += onProgressNotification;
+                _markdownDataSourceCommand.NotifyProgress += onProgressNotification;
+            }
+
+            foreach (DataSource source in dataSources)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                switch (source)
+                {
+                    case CSharpDataSourceLocal cSharpDataSourceLocal:
+                        await _cSharpDataSourceCommand.IngestAsync(cSharpDataSourceLocal, options?.CSharpContentFormatBuilder, cancellationToken);
+                        break;
+                    case CSharpDataSourceGitHub cSharpDataSourceGitHub:
+                        await _cSharpDataSourceCommand.IngestAsync(cSharpDataSourceGitHub, options?.CSharpContentFormatBuilder, cancellationToken);
+                        break;
+                    case MarkdownDataSourceLocal markdownDataSourceLocal:
+                        await _markdownDataSourceCommand.IngestAsync(markdownDataSourceLocal, cancellationToken); //todo support content format builder
+                        break;
+                    case MarkdownDataSourceGitHub markdownDataSourceGitHub:
+                        await _markdownDataSourceCommand.IngestAsync(markdownDataSourceGitHub, cancellationToken); //todo support content format builder
+                        break;
+                }
             }
         }
-    }
-
-    public void Dispose()
-    {
-        _cSharpDataSourceCommand.NotifyProgress -= OnNotifyProgress;
-        _markdownDataSourceCommand.NotifyProgress -= OnNotifyProgress;
+        finally
+        {
+            if (onProgressNotification != null)
+            {
+                _cSharpDataSourceCommand.NotifyProgress -= onProgressNotification;
+                _markdownDataSourceCommand.NotifyProgress -= onProgressNotification;
+            }
+        }
     }
 }

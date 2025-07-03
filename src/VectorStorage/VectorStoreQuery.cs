@@ -22,10 +22,10 @@ public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration 
     }
 
 
-    public async Task<SearchResult> SearchAsync(string searchQuery, int numberOfRecordsBack, Expression<Func<VectorEntity, bool>>? filter)
+    public async Task<SearchResult> SearchAsync(string searchQuery, int numberOfRecordsBack, Expression<Func<VectorEntity, bool>>? filter, CancellationToken cancellationToken = default)
     {
-        VectorStoreCollection<string, VectorEntity> collection = await GetCollectionAndEnsureItExist();
-        await collection.EnsureCollectionExistsAsync();
+        VectorStoreCollection<string, VectorEntity> collection = await GetCollectionAndEnsureItExist(cancellationToken);
+        await collection.EnsureCollectionExistsAsync(cancellationToken);
         VectorSearchOptions<VectorEntity> vectorSearchOptions = new()
         {
             IncludeVectors = false
@@ -41,7 +41,7 @@ public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration 
         }
 
         List<VectorSearchResult<VectorEntity>> result = [];
-        await foreach (VectorSearchResult<VectorEntity> searchResult in collection.SearchAsync(searchQuery, numberOfRecordsBack, vectorSearchOptions))
+        await foreach (VectorSearchResult<VectorEntity> searchResult in collection.SearchAsync(searchQuery, numberOfRecordsBack, vectorSearchOptions, cancellationToken))
         {
             result.Add(searchResult);
         }
@@ -52,13 +52,14 @@ public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration 
         };
     }
 
-    public async Task<VectorEntity[]> GetExistingAsync(Expression<Func<VectorEntity, bool>>? filter = null)
+    public async Task<VectorEntity[]> GetExistingAsync(Expression<Func<VectorEntity, bool>>? filter = null, CancellationToken cancellationToken = default)
     {
         List<VectorEntity> result = [];
-        VectorStoreCollection<string, VectorEntity> collection = await GetCollectionAndEnsureItExist();
-        await collection.EnsureCollectionExistsAsync();
+        VectorStoreCollection<string, VectorEntity> collection = await GetCollectionAndEnsureItExist(cancellationToken);
+        await collection.EnsureCollectionExistsAsync(cancellationToken);
 
-        Expression<Func<VectorEntity, bool>> filterToUse = entity => true;
+        // ReSharper disable once EqualExpressionComparison
+        Expression<Func<VectorEntity, bool>> filterToUse = entity => entity.Id == entity.Id;
         if (filter != null)
         {
             filterToUse = filter;
@@ -67,7 +68,7 @@ public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration 
         await foreach (VectorEntity entity in collection.GetAsync(filterToUse, int.MaxValue, new FilteredRecordRetrievalOptions<VectorEntity>
                        {
                            IncludeVectors = false
-                       }))
+                       }, cancellationToken))
         {
             result.Add(entity);
         }

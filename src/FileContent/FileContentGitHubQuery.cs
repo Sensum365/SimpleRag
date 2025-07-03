@@ -8,7 +8,7 @@ namespace SimpleRag.FileContent;
 [UsedImplicitly]
 public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
 {
-    public async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceGitHub source, string fileExtensionType)
+    public async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceGitHub source, string fileExtensionType, CancellationToken cancellationToken = default)
     {
         SharedGuards(source);
 
@@ -23,6 +23,7 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
         var gitHubClient = gitHubQuery.GetGitHubClient();
 
         var commit = await gitHubQuery.GetLatestCommitAsync(gitHubClient, source.GitHubOwner, source.GitHubRepo);
+        cancellationToken.ThrowIfCancellationRequested();
         if (source.GitHubLastCommitTimestamp.HasValue && commit.Committer.Date <= source.GitHubLastCommitTimestamp.Value)
         {
             OnNotifyProgress("No new Commits detected in the repo so skipping retrieval");
@@ -31,7 +32,7 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
 
         var treeResponse = await gitHubQuery.GetTreeAsync(gitHubClient, commit, source.GitHubOwner, source.GitHubRepo, source.Recursive);
         fileExtensionType = "." + fileExtensionType;
-
+        cancellationToken.ThrowIfCancellationRequested();
 
         TreeItem[] items;
         if (source.Path == "/")
@@ -62,6 +63,7 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
                 continue;
             }
 
+            cancellationToken.ThrowIfCancellationRequested();
             var pathWithoutRoot = path.Replace(source.Path, string.Empty);
             OnNotifyProgress("Downloading file from GitHub", counter, items.Length, pathWithoutRoot);
             var content = await gitHubQuery.GetFileContentAsync(gitHubClient, source.GitHubOwner, source.GitHubRepo, path);
