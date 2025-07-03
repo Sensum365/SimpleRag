@@ -47,8 +47,6 @@ public class IngestionExample(Ingestion ingestion)
         string gitHubOwner = "rwjdk";
         string gitHubRepo = "TrelloDotNet";
 
-        ingestion.NotifyProgress += NotifyProgress;
-
         await ingestion.IngestAsync(
         [
             new CSharpDataSourceGitHub
@@ -71,7 +69,7 @@ public class IngestionExample(Ingestion ingestion)
                 GitHubRepo = gitHubRepo,
                 LevelsToChunk = 3,
             }
-        ]);
+        ], onProgressNotification: NotifyProgress);
     }
 
     private void NotifyProgress(ProgressNotification obj)
