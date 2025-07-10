@@ -7,9 +7,17 @@ using SimpleRag.DataSources.CSharp.Models;
 
 namespace SimpleRag.DataSources.CSharp
 {
-    [UsedImplicitly]
+    /// <summary>
+    /// Breaks C# code into smaller chunks for ingestion.
+    /// </summary>
+    [PublicAPI]
     public class CSharpChunker
     {
+        /// <summary>
+        /// Parses the provided code and returns the discovered code entities.
+        /// </summary>
+        /// <param name="code">The code to analyze.</param>
+        /// <returns>A list of discovered code chunks.</returns>
         public List<CSharpChunk> GetCodeEntities(string code)
         {
             SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
@@ -112,7 +120,6 @@ namespace SimpleRag.DataSources.CSharp
                 FieldDeclarationSyntax[] constants = GetPublicConstants(node.Members);
                 ConversionOperatorDeclarationSyntax[] implicitOperators = GetPublicImplicitOperators(node.Members);
                 ConstructorDeclarationSyntax[] constructors = GetPublicConstructors(node.Members);
-                //todo - Support more types (https://github.com/rwjdk/CodeRag/issues/1)
 
                 string ns = GetNamespace(node);
 

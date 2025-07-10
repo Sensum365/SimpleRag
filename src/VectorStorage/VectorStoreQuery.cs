@@ -4,6 +4,9 @@ using SimpleRag.VectorStorage.Models;
 
 namespace SimpleRag.VectorStorage;
 
+/// <summary>
+/// Provides query operations against the vector store.
+/// </summary>
 public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration)
 {
     private bool _creationEnsured;
@@ -22,6 +25,9 @@ public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration 
     }
 
 
+    /// <summary>
+    /// Searches the vector store.
+    /// </summary>
     public async Task<SearchResult> SearchAsync(string searchQuery, int numberOfRecordsBack, Expression<Func<VectorEntity, bool>>? filter, CancellationToken cancellationToken = default)
     {
         VectorStoreCollection<string, VectorEntity> collection = await GetCollectionAndEnsureItExist(cancellationToken);
@@ -52,6 +58,9 @@ public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration 
         };
     }
 
+    /// <summary>
+    /// Retrieves existing records matching the filter.
+    /// </summary>
     public async Task<VectorEntity[]> GetExistingAsync(Expression<Func<VectorEntity, bool>>? filter = null, CancellationToken cancellationToken = default)
     {
         List<VectorEntity> result = [];

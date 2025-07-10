@@ -4,9 +4,20 @@ using SimpleRag.DataSources.Markdown.Models;
 
 namespace SimpleRag.DataSources.Markdown
 {
-    [UsedImplicitly]
+    /// <summary>
+    /// Splits markdown content into smaller chunks.
+    /// </summary>
+    [PublicAPI]
     public class MarkdownChunker
     {
+        /// <summary>
+        /// Breaks the specified markdown content into chunks.
+        /// </summary>
+        /// <param name="content">The markdown content.</param>
+        /// <param name="level">The heading level to chunk at.</param>
+        /// <param name="linesToIgnorePatterns">Optional patterns of lines to ignore.</param>
+        /// <param name="ignoreIfLessThanThisAmountOfChars">Optional minimum size for a chunk.</param>
+        /// <returns>The created chunks.</returns>
         public MarkdownChunk[] GetChunks(string content, int level = 3, string? linesToIgnorePatterns = null, int? ignoreIfLessThanThisAmountOfChars = null)
         {
             List<MarkdownChunk> chunks = [];

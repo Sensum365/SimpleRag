@@ -5,7 +5,10 @@ using SimpleRag.VectorStorage.Models;
 
 namespace SimpleRag.VectorStorage;
 
-[UsedImplicitly]
+/// <summary>
+/// Provides commands for modifying the vector store.
+/// </summary>
+[PublicAPI]
 public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration)
 {
     private bool _creationEnsured;
@@ -23,6 +26,9 @@ public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguratio
         return collection;
     }
 
+    /// <summary>
+    /// Inserts or updates the specified entity.
+    /// </summary>
     public async Task UpsertAsync(VectorEntity entity, CancellationToken cancellationToken = default)
     {
         try
@@ -54,6 +60,9 @@ public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguratio
         }
     }
 
+    /// <summary>
+    /// Deletes all entities matching the filter.
+    /// </summary>
     public async Task DeleteAsync(Expression<Func<VectorEntity, bool>> filter, CancellationToken cancellationToken = default)
     {
         List<string> keysToDelete = [];
@@ -69,6 +78,9 @@ public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguratio
         await DeleteAsync(keysToDelete, cancellationToken);
     }
 
+    /// <summary>
+    /// Deletes the entities with the specified keys.
+    /// </summary>
     public async Task DeleteAsync(IEnumerable<string> keysToDelete, CancellationToken cancellationToken = default)
     {
         var collection = await GetCollectionAndEnsureItExist(cancellationToken);

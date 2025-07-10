@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataSources.CSharp;
 using SimpleRag.DataSources.Markdown;
 using SimpleRag.FileContent;
@@ -7,9 +8,15 @@ using SimpleRag.VectorStorage;
 
 namespace SimpleRag.Extensions;
 
+/// <summary>
+/// Extension methods for registering SimpleRag services.
+/// </summary>
 public static class ServiceCollectionExtensions
 {
-    //todo - add option for keyed services
+    /// <summary>
+    /// Registers SimpleRag services without GitHub integration.
+    /// </summary>
+    [PublicAPI]
     public static void AddSimpleRag<T>(
         this IServiceCollection services,
         VectorStoreConfiguration configuration,
@@ -18,6 +25,10 @@ public static class ServiceCollectionExtensions
         services.AddSimpleRagWithGitHubIntegration(configuration, vectorStoreFactory, string.Empty);
     }
 
+    /// <summary>
+    /// Registers SimpleRag services including GitHub integration.
+    /// </summary>
+    [PublicAPI]
     public static void AddSimpleRagWithGitHubIntegration<T>(
         this IServiceCollection services,
         VectorStoreConfiguration configuration,

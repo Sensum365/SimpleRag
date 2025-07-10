@@ -10,7 +10,10 @@ using SimpleRag.Models;
 
 namespace SimpleRag.DataSources.Markdown;
 
-[UsedImplicitly]
+/// <summary>
+/// Command used for ingesting markdown based data sources.
+/// </summary>
+[PublicAPI]
 public class MarkdownDataSourceCommand(
     MarkdownChunker chunker,
     VectorStoreQuery vectorStoreQuery,
@@ -18,8 +21,14 @@ public class MarkdownDataSourceCommand(
     FileContentGitHubQuery gitHubFileContentQuery,
     FileContentLocalQuery localFileContentQuery) : ProgressNotificationBase
 {
+    /// <summary>The source kind handled by this command.</summary>
     public const string SourceKind = "Markdown";
 
+    /// <summary>
+    /// Ingests a local markdown source.
+    /// </summary>
+    /// <param name="dataSource">The source to ingest.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     public async Task IngestAsync(MarkdownDataSourceLocal dataSource, CancellationToken cancellationToken = default)
     {
         Guards(dataSource);
@@ -36,6 +45,11 @@ public class MarkdownDataSourceCommand(
         await IngestAsync(dataSource, rawFiles, cancellationToken);
     }
 
+    /// <summary>
+    /// Ingests a GitHub based markdown source.
+    /// </summary>
+    /// <param name="dataSource">The source to ingest.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     public async Task IngestAsync(MarkdownDataSourceGitHub dataSource, CancellationToken cancellationToken = default)
     {
         Guards(dataSource);

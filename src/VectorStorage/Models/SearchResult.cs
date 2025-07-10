@@ -3,10 +3,17 @@ using Microsoft.Extensions.VectorData;
 
 namespace SimpleRag.VectorStorage.Models;
 
+/// <summary>
+/// Represents the result of a vector search.
+/// </summary>
 public class SearchResult
 {
-    public required VectorSearchResult<VectorEntity>[] Entities { get; set; }
+    /// <summary>Gets or sets the returned entities.</summary>
+    public required VectorSearchResult<VectorEntity>[] Entities { get; init; }
 
+    /// <summary>
+    /// Formats the result as an XML fragment.
+    /// </summary>
     public string GetAsStringResult()
     {
         StringBuilder sb = new();
