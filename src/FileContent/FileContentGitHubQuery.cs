@@ -5,10 +5,10 @@ using SimpleRag.Integrations.GitHub;
 
 namespace SimpleRag.FileContent;
 
-[UsedImplicitly]
 /// <summary>
 /// Retrieves file content from GitHub sources.
 /// </summary>
+[PublicAPI]
 public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
 {
     /// <summary>

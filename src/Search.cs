@@ -1,12 +1,13 @@
-﻿using SimpleRag.VectorStorage;
+﻿using JetBrains.Annotations;
+using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
-using System.Linq.Expressions;
 
 namespace SimpleRag;
 
 /// <summary>
 /// Performs search operations against the vector store.
 /// </summary>
+[PublicAPI]
 public class Search(VectorStoreQuery vectorStoreQuery)
 {
     /// <summary>

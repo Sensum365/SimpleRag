@@ -7,10 +7,10 @@ using SimpleRag.DataSources.CSharp.Models;
 
 namespace SimpleRag.DataSources.CSharp
 {
-    [UsedImplicitly]
     /// <summary>
     /// Breaks C# code into smaller chunks for ingestion.
     /// </summary>
+    [PublicAPI]
     public class CSharpChunker
     {
         /// <summary>
@@ -120,7 +120,6 @@ namespace SimpleRag.DataSources.CSharp
                 FieldDeclarationSyntax[] constants = GetPublicConstants(node.Members);
                 ConversionOperatorDeclarationSyntax[] implicitOperators = GetPublicImplicitOperators(node.Members);
                 ConstructorDeclarationSyntax[] constructors = GetPublicConstructors(node.Members);
-                //todo - Support more types (https://github.com/rwjdk/CodeRag/issues/1)
 
                 string ns = GetNamespace(node);
 

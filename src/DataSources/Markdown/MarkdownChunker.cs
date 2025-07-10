@@ -4,10 +4,10 @@ using SimpleRag.DataSources.Markdown.Models;
 
 namespace SimpleRag.DataSources.Markdown
 {
-    [UsedImplicitly]
     /// <summary>
     /// Splits markdown content into smaller chunks.
     /// </summary>
+    [PublicAPI]
     public class MarkdownChunker
     {
         /// <summary>

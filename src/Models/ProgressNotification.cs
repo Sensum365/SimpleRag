@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace SimpleRag.Models;
 
 /// <summary>
@@ -8,6 +10,7 @@ namespace SimpleRag.Models;
 /// <param name="Current">The current progress value.</param>
 /// <param name="Total">The total progress value.</param>
 /// <param name="Details">Optional additional details.</param>
+[PublicAPI]
 public record ProgressNotification(DateTimeOffset Timestamp, string Message, int Current = 0, int Total = 0, string? Details = null)
 {
     /// <summary>Gets or sets optional additional arguments.</summary>

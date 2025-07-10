@@ -8,13 +8,13 @@ namespace SimpleRag.DataSources.Markdown.Models;
 public class MarkdownDataSourceGitHub : MarkdownSource
 {
     /// <summary>Gets or sets the GitHub repository owner.</summary>
-    public required string GitHubOwner { get; set; }
+    public required string GitHubOwner { get; init; }
 
     /// <summary>Gets or sets the GitHub repository name.</summary>
-    public required string GitHubRepo { get; set; }
+    public required string GitHubRepo { get; init; }
 
     /// <summary>Gets or sets the last commit timestamp processed.</summary>
-    public DateTimeOffset? GitHubLastCommitTimestamp { get; set; }
+    public DateTimeOffset? GitHubLastCommitTimestamp { get; init; }
 
     /// <summary>
     /// Converts this instance to a <see cref="FileContentSourceGitHub"/>.

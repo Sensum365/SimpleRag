@@ -9,7 +9,7 @@ namespace SimpleRag.VectorStorage.Models;
 public class SearchResult
 {
     /// <summary>Gets or sets the returned entities.</summary>
-    public required VectorSearchResult<VectorEntity>[] Entities { get; set; }
+    public required VectorSearchResult<VectorEntity>[] Entities { get; init; }
 
     /// <summary>
     /// Formats the result as an XML fragment.

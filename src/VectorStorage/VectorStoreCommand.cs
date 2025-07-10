@@ -5,10 +5,10 @@ using SimpleRag.VectorStorage.Models;
 
 namespace SimpleRag.VectorStorage;
 
-[UsedImplicitly]
 /// <summary>
 /// Provides commands for modifying the vector store.
 /// </summary>
+[PublicAPI]
 public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration)
 {
     private bool _creationEnsured;

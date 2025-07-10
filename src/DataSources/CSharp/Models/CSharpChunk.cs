@@ -1,4 +1,5 @@
 using System.Text;
+using JetBrains.Annotations;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 
@@ -16,6 +17,7 @@ namespace SimpleRag.DataSources.CSharp.Models;
 /// <param name="value">The string representation of the code element.</param>
 /// <param name="dependencies">A list of dependencies for the code element.</param>
 /// <param name="node">The syntax node from Roslyn.</param>
+[PublicAPI]
 public class CSharpChunk(CSharpKind kind, string @namespace, string? parent, CSharpKind? parentKind, string name, string xmlSummary, string value, List<string> dependencies, SyntaxNode node)
 {
     /// <summary>

@@ -5,10 +5,10 @@ using ProductHeaderValue = Octokit.ProductHeaderValue;
 
 namespace SimpleRag.Integrations.GitHub;
 
-[UsedImplicitly]
 /// <summary>
 /// Helper methods for interacting with the GitHub API.
 /// </summary>
+[PublicAPI]
 public class GitHubQuery(GitHubConnection connection)
 {
     /// <summary>Gets a value indicating whether a GitHub token is configured.</summary>

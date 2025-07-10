@@ -8,13 +8,13 @@ namespace SimpleRag.FileContent.Models;
 public abstract class FileContentSource
 {
     /// <summary>Gets or sets a value indicating whether directories are searched recursively.</summary>
-    public required bool Recursive { get; set; }
+    public required bool Recursive { get; init; }
 
     /// <summary>Gets or sets the root path.</summary>
-    public required string Path { get; set; }
+    public required string Path { get; init; }
 
     /// <summary>Gets or sets patterns for files to ignore.</summary>
-    public required string? FileIgnorePatterns { get; set; }
+    public required string? FileIgnorePatterns { get; init; }
 
     /// <summary>
     /// Determines whether the specified path should be ignored.

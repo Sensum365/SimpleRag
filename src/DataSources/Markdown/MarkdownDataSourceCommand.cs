@@ -10,10 +10,10 @@ using SimpleRag.Models;
 
 namespace SimpleRag.DataSources.Markdown;
 
-[UsedImplicitly]
 /// <summary>
 /// Command used for ingesting markdown based data sources.
 /// </summary>
+[PublicAPI]
 public class MarkdownDataSourceCommand(
     MarkdownChunker chunker,
     VectorStoreQuery vectorStoreQuery,

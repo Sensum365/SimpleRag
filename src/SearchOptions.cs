@@ -1,11 +1,13 @@
-﻿using System.Linq.Expressions;
+﻿using JetBrains.Annotations;
 using SimpleRag.VectorStorage.Models;
+using System.Linq.Expressions;
 
 namespace SimpleRag;
 
 /// <summary>
 /// Options controlling a search request.
 /// </summary>
+[PublicAPI]
 public class SearchOptions
 {
     /// <summary>Gets or sets the query to search for.</summary>

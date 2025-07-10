@@ -11,17 +11,17 @@ public class CSharpDataSourceGitHub : DataSource
     /// <summary>
     /// Gets or sets the owner of the repository on GitHub.
     /// </summary>
-    public required string GitHubOwner { get; set; }
+    public required string GitHubOwner { get; init; }
 
     /// <summary>
     /// Gets or sets the name of the repository on GitHub.
     /// </summary>
-    public required string GitHubRepo { get; set; }
+    public required string GitHubRepo { get; init; }
 
     /// <summary>
     /// Gets or sets the timestamp of the last commit to check for changes.
     /// </summary>
-    public DateTimeOffset? GitHubLastCommitTimestamp { get; set; }
+    public DateTimeOffset? GitHubLastCommitTimestamp { get; init; }
 
     /// <summary>
     /// Converts this object to a <see cref="FileContentSourceGitHub"/> object.

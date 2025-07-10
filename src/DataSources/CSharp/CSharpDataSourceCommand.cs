@@ -19,7 +19,7 @@ namespace SimpleRag.DataSources.CSharp;
 /// <param name="vectorStoreQuery">The query service for retrieving existing vector entities from the vector store.</param>
 /// <param name="gitHubFilesQuery">The query service for retrieving C# files from GitHub sources.</param>
 /// <param name="localFilesQuery">The query service for retrieving C# files from local sources.</param>
-[UsedImplicitly]
+[PublicAPI]
 public class CSharpDataSourceCommand(
     CSharpChunker chunker,
     VectorStoreCommand vectorStoreCommand,
