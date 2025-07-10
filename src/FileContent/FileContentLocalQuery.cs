@@ -5,6 +5,9 @@ using SimpleRag.FileContent.Models;
 namespace SimpleRag.FileContent;
 
 [UsedImplicitly]
+/// <summary>
+/// Retrieves file content from the local file system.
+/// </summary>
 public class FileContentLocalQuery : FileContentQuery
 {
     internal async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceLocal source, string fileExtensionType, CancellationToken cancellationToken = default)

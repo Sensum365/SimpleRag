@@ -6,8 +6,14 @@ using SimpleRag.Integrations.GitHub;
 namespace SimpleRag.FileContent;
 
 [UsedImplicitly]
+/// <summary>
+/// Retrieves file content from GitHub sources.
+/// </summary>
 public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
 {
+    /// <summary>
+    /// Gets the raw content for a GitHub source.
+    /// </summary>
     public async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceGitHub source, string fileExtensionType, CancellationToken cancellationToken = default)
     {
         SharedGuards(source);

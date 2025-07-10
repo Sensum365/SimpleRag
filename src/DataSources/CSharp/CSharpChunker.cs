@@ -8,8 +8,16 @@ using SimpleRag.DataSources.CSharp.Models;
 namespace SimpleRag.DataSources.CSharp
 {
     [UsedImplicitly]
+    /// <summary>
+    /// Breaks C# code into smaller chunks for ingestion.
+    /// </summary>
     public class CSharpChunker
     {
+        /// <summary>
+        /// Parses the provided code and returns the discovered code entities.
+        /// </summary>
+        /// <param name="code">The code to analyze.</param>
+        /// <returns>A list of discovered code chunks.</returns>
         public List<CSharpChunk> GetCodeEntities(string code)
         {
             SyntaxTree tree = CSharpSyntaxTree.ParseText(code);

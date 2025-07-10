@@ -7,17 +7,26 @@ using SimpleRag.Models;
 
 namespace SimpleRag;
 
+/// <summary>
+/// Coordinates ingestion of data sources.
+/// </summary>
 public class Ingestion
 {
     private readonly CSharpDataSourceCommand _cSharpDataSourceCommand;
     private readonly MarkdownDataSourceCommand _markdownDataSourceCommand;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="Ingestion"/> class.
+    /// </summary>
     public Ingestion(CSharpDataSourceCommand cSharpDataSourceCommand, MarkdownDataSourceCommand markdownDataSourceCommand)
     {
         _cSharpDataSourceCommand = cSharpDataSourceCommand;
         _markdownDataSourceCommand = markdownDataSourceCommand;
     }
 
+    /// <summary>
+    /// Ingests the provided data sources.
+    /// </summary>
     public async Task IngestAsync(IEnumerable<DataSource> dataSources, IngestionOptions? options = null, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         try

@@ -1,13 +1,24 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 namespace SimpleRag.FileContent.Models;
 
+/// <summary>
+/// Base class describing a source of file content.
+/// </summary>
 public abstract class FileContentSource
 {
+    /// <summary>Gets or sets a value indicating whether directories are searched recursively.</summary>
     public required bool Recursive { get; set; }
+
+    /// <summary>Gets or sets the root path.</summary>
     public required string Path { get; set; }
+
+    /// <summary>Gets or sets patterns for files to ignore.</summary>
     public required string? FileIgnorePatterns { get; set; }
 
+    /// <summary>
+    /// Determines whether the specified path should be ignored.
+    /// </summary>
     public bool IgnoreFile(string path)
     {
         if (string.IsNullOrWhiteSpace(FileIgnorePatterns))

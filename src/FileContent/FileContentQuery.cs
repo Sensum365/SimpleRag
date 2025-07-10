@@ -4,6 +4,9 @@ using SimpleRag.Models;
 
 namespace SimpleRag.FileContent;
 
+/// <summary>
+/// Base class for querying file content sources.
+/// </summary>
 public abstract class FileContentQuery : ProgressNotificationBase
 {
     protected void SharedGuards(FileContentSource source)
@@ -27,6 +30,9 @@ public abstract class FileContentQuery : ProgressNotificationBase
         }
     }
 
+    /// <summary>
+    /// Determines whether the specified path should be ignored based on patterns.
+    /// </summary>
     public bool IgnoreFile(string path, string fileIgnorePatterns)
     {
         if (string.IsNullOrWhiteSpace(fileIgnorePatterns))

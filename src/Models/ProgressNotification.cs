@@ -1,9 +1,21 @@
-﻿namespace SimpleRag.Models;
+namespace SimpleRag.Models;
 
+/// <summary>
+/// Represents a progress notification.
+/// </summary>
+/// <param name="Timestamp">The time the notification was created.</param>
+/// <param name="Message">The message describing the progress.</param>
+/// <param name="Current">The current progress value.</param>
+/// <param name="Total">The total progress value.</param>
+/// <param name="Details">Optional additional details.</param>
 public record ProgressNotification(DateTimeOffset Timestamp, string Message, int Current = 0, int Total = 0, string? Details = null)
 {
+    /// <summary>Gets or sets optional additional arguments.</summary>
     public object? Arguments { get; init; }
 
+    /// <summary>
+    /// Gets the formatted message including details.
+    /// </summary>
     public string GetFormattedMessageWithDetails()
     {
         if (Current != 0 && Total != 0)
@@ -16,6 +28,9 @@ public record ProgressNotification(DateTimeOffset Timestamp, string Message, int
         }
     }
 
+    /// <summary>
+    /// Gets the formatted message.
+    /// </summary>
     public string GetFormattedMessage()
     {
         if (Current != 0 && Total != 0)
