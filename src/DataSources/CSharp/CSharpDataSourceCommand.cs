@@ -10,6 +10,15 @@ using SimpleRag.VectorStorage.Models;
 
 namespace SimpleRag.DataSources.CSharp;
 
+/// <summary>
+/// Command class for ingesting and processing C# data sources, supporting both local and GitHub-based sources.
+/// Handles chunking, formatting, and storing code entities as vector embeddings for semantic search and retrieval.
+/// </summary>
+/// <param name="chunker">The CSharpChunker used to extract code entities from C# source files.</param>
+/// <param name="vectorStoreCommand">The command for upserting and deleting vector entities in the vector store.</param>
+/// <param name="vectorStoreQuery">The query service for retrieving existing vector entities from the vector store.</param>
+/// <param name="gitHubFilesQuery">The query service for retrieving C# files from GitHub sources.</param>
+/// <param name="localFilesQuery">The query service for retrieving C# files from local sources.</param>
 [UsedImplicitly]
 public class CSharpDataSourceCommand(
     CSharpChunker chunker,
@@ -18,6 +27,9 @@ public class CSharpDataSourceCommand(
     FileContentGitHubQuery gitHubFilesQuery,
     FileContentLocalQuery localFilesQuery) : ProgressNotificationBase
 {
+    /// <summary>
+    /// The sourceKind this command ingest
+    /// </summary>
     public const string SourceKind = "CSharp";
 
     /// <summary>
@@ -25,6 +37,7 @@ public class CSharpDataSourceCommand(
     /// </summary>
     /// <param name="source">The Source to ingest</param>
     /// <param name="contentFormatBuilder">Builder of the desired format of the Content to be vectorized or leave null to use the default provided format</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     public async Task IngestAsync(CSharpDataSourceLocal source, Func<CSharpChunk, string>? contentFormatBuilder = null, CancellationToken cancellationToken = default)
     {
         Guards(source);
@@ -51,6 +64,7 @@ public class CSharpDataSourceCommand(
     /// </summary>
     /// <param name="source">The Source to ingest</param>
     /// <param name="contentFormatBuilder">Builder of the desired format of the Content to be vectorized or leave null to use the default provided format</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     public async Task IngestAsync(CSharpDataSourceGitHub source, Func<CSharpChunk, string>? contentFormatBuilder = null, CancellationToken cancellationToken = default)
     {
         Guards(source);
@@ -130,6 +144,8 @@ public class CSharpDataSourceCommand(
             switch (codeEntity.Kind)
             {
                 case CSharpKind.Enum:
+                case CSharpKind.Interface:
+                case CSharpKind.Constructor:
                 case CSharpKind.Class:
                 case CSharpKind.Struct:
                 case CSharpKind.Record:

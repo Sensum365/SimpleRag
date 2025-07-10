@@ -32,7 +32,7 @@ string githubToken = builder.Configuration["GitHubToken"]!;
 builder.Services.AddAzureOpenAIEmbeddingGenerator(embeddingDeploymentName, endpoint, key);
 
 //Setup SimpleRag (use .AddSimpleRag(...) instead if you do not wish to use GitHub as Datasource)
-builder.Services.AddSimpleRagWithGithubIntegration(new VectorStoreConfiguration(Constants.VectorStoreName, Constants.MaxRecords), options => new SqlServerVectorStore(sqlServerConnectionString, new SqlServerVectorStoreOptions
+builder.Services.AddSimpleRagWithGitHubIntegration(new VectorStoreConfiguration(Constants.VectorStoreName, Constants.MaxRecords), options => new SqlServerVectorStore(sqlServerConnectionString, new SqlServerVectorStoreOptions
 {
     EmbeddingGenerator = options.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>()
 }), githubToken);

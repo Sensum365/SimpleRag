@@ -15,10 +15,10 @@ public static class ServiceCollectionExtensions
         VectorStoreConfiguration configuration,
         Func<IServiceProvider, T>? vectorStoreFactory) where T : Microsoft.Extensions.VectorData.VectorStore
     {
-        services.AddSimpleRagWithGithubIntegration(configuration, vectorStoreFactory, string.Empty);
+        services.AddSimpleRagWithGitHubIntegration(configuration, vectorStoreFactory, string.Empty);
     }
 
-    public static void AddSimpleRagWithGithubIntegration<T>(
+    public static void AddSimpleRagWithGitHubIntegration<T>(
         this IServiceCollection services,
         VectorStoreConfiguration configuration,
         Func<IServiceProvider, T>? vectorStoreFactory, string githubPatToken) where T : Microsoft.Extensions.VectorData.VectorStore
