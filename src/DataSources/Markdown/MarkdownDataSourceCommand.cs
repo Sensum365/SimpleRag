@@ -146,7 +146,7 @@ public class MarkdownDataSourceCommand(
             }
         }
 
-        var existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceId == source.Id, cancellationToken);
+        var existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == source.CollectionId && x.SourceId == source.Id, cancellationToken);
 
         int counter = 0;
         List<string> idsToKeep = [];

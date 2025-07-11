@@ -154,10 +154,11 @@ public class CSharpDataSourceCommand(
             }
         }
 
-        VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceId == source.Id, cancellationToken);
+        VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == source.CollectionId && x.SourceId == source.Id, cancellationToken);
 
         int counter = 0;
         List<string> idsToKeep = [];
+
         foreach (CSharpChunk codeEntity in codeEntities)
         {
             counter++;
@@ -185,7 +186,8 @@ public class CSharpDataSourceCommand(
                 Content = content,
             };
 
-            var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == entity.GetContentCompareKey());
+            string contentCompareKey = entity.GetContentCompareKey();
+            var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == contentCompareKey);
             if (existing == null)
             {
                 await RetryHelper.ExecuteWithRetryAsync(async () => { await vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));

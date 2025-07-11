@@ -62,16 +62,18 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
         int counter = 0;
         foreach (string path in items.Select(x => x.Path))
         {
+            var pathWithoutRoot = path.Replace(source.Path, string.Empty);
             counter++;
             if (source.IgnoreFile(path))
             {
+                OnNotifyProgress("Ignoring file from GitHub", counter, items.Length, pathWithoutRoot);
                 ignoredFiles.Add(path);
                 continue;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var pathWithoutRoot = path.Replace(source.Path, string.Empty);
-            OnNotifyProgress("Downloading file from GitHub", counter, items.Length, pathWithoutRoot);
+
+            OnNotifyProgress("Downloading file-content from GitHub", counter, items.Length, pathWithoutRoot);
             var content = await gitHubQuery.GetFileContentAsync(gitHubClient, source.GitHubOwner, source.GitHubRepo, path);
             if (string.IsNullOrWhiteSpace(content))
             {

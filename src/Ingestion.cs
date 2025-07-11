@@ -27,6 +27,13 @@ public class Ingestion(CSharpDataSourceCommand cSharpDataSourceCommand, Markdown
                 markdownDataSourceCommand.NotifyProgress += onProgressNotification;
             }
 
+            dataSources = dataSources.ToList();
+            string[] idCombos = dataSources.Select(x => x.CollectionId + " | " + x.Id).ToArray();
+            if (idCombos.Length != idCombos.Distinct().Count())
+            {
+                throw new SourceException("One or more datasource CollectionId/SourceId combinations are not unique (which would result in them overwriting each other in the vector store)");
+            }
+
             foreach (DataSource source in dataSources)
             {
                 cancellationToken.ThrowIfCancellationRequested();
