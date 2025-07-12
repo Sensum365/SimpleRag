@@ -66,27 +66,27 @@ public class MarkdownDataSourceCommand(
         await IngestAsync(dataSource, rawFiles, cancellationToken);
     }
 
-    private async Task IngestAsync(MarkdownSource source, FileContent.Models.FileContent[] rawFiles, CancellationToken cancellationToken = default)
+    private async Task IngestAsync(MarkdownDataSource dataSource, FileContent.Models.FileContent[] rawFiles, CancellationToken cancellationToken = default)
     {
         List<VectorEntity> entries = [];
 
         foreach (var rawFile in rawFiles)
         {
             var numberOfLine = rawFile.Content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
-            if (source.IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > source.IgnoreFileIfMoreThanThisNumberOfLines)
+            if (dataSource.IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > dataSource.IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;
             }
 
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(rawFile.Path);
             var content = rawFile.Content;
-            if (source.IgnoreCommentedOutContent)
+            if (dataSource.IgnoreCommentedOutContent)
             {
                 //Remove Any Commented out parts
                 content = Regex.Replace(content, "<!--[\\s\\S]*?-->", string.Empty);
             }
 
-            if (source.IgnoreImages)
+            if (dataSource.IgnoreImages)
             {
                 //Remove Any Images
                 content = Regex.Replace(content, @"!\[.*?\]\(.*?\)", string.Empty);
@@ -96,13 +96,13 @@ public class MarkdownDataSourceCommand(
             content = Regex.Replace(content, @"\r\n[\r\n]+|\r[\r]+|\n[\n]+", newLine + newLine);
             content = content.Trim();
 
-            if (numberOfLine > source.OnlyChunkIfMoreThanThisNumberOfLines)
+            if (numberOfLine > dataSource.OnlyChunkIfMoreThanThisNumberOfLines)
             {
                 //Chunk larger files
                 MarkdownChunk[] chunks = chunker.GetChunks(content,
-                    source.LevelsToChunk,
-                    source.ChunkLineIgnorePatterns,
-                    source.IgnoreChunkIfLessThanThisAmountOfChars);
+                    dataSource.LevelsToChunk,
+                    dataSource.ChunkLineIgnorePatterns,
+                    dataSource.IgnoreChunkIfLessThanThisAmountOfChars);
 
                 entries.AddRange(chunks.Select(x => new VectorEntity
                 {
@@ -111,9 +111,9 @@ public class MarkdownDataSourceCommand(
                     Content = $"{fileNameWithoutExtension} - {x.Name}{newLine}---{newLine}{x.Content}", //todo - support Content format builder
                     ContentId = x.ChunkId,
                     ContentName = x.Name,
-                    SourceId = source.Id,
+                    SourceId = dataSource.Id,
                     SourceKind = SourceKind,
-                    SourceCollectionId = source.CollectionId,
+                    SourceCollectionId = dataSource.CollectionId,
                     SourcePath = rawFile.PathWithoutRoot,
                     ContentParent = null,
                     ContentParentKind = null,
@@ -128,9 +128,9 @@ public class MarkdownDataSourceCommand(
                 entries.Add(new VectorEntity
                 {
                     Id = Guid.NewGuid().ToString(),
-                    SourceId = source.Id,
+                    SourceId = dataSource.Id,
                     SourceKind = SourceKind,
-                    SourceCollectionId = source.CollectionId,
+                    SourceCollectionId = dataSource.CollectionId,
                     SourcePath = rawFile.PathWithoutRoot,
                     ContentKind = "Markdown",
                     Content = $"{fileNameWithoutExtension}{newLine}---{newLine}{content}", //todo - support Content format builder
@@ -146,7 +146,7 @@ public class MarkdownDataSourceCommand(
             }
         }
 
-        var existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == source.CollectionId && x.SourceId == source.Id, cancellationToken);
+        var existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == dataSource.CollectionId && x.SourceId == dataSource.Id, cancellationToken);
 
         int counter = 0;
         List<string> idsToKeep = [];

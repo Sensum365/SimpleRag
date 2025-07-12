@@ -1,3 +1,5 @@
+using SimpleRag.Integrations.GitHub;
+
 namespace SimpleRag.FileContent.Models;
 
 /// <summary>
@@ -5,12 +7,8 @@ namespace SimpleRag.FileContent.Models;
 /// </summary>
 public class FileContentSourceGitHub : FileContentSource
 {
-    /// <summary>Gets or sets the repository owner.</summary>
-    public required string? GitHubOwner { get; init; }
-
-    /// <summary>Gets or sets the repository name.</summary>
-    public required string? GitHubRepo { get; init; }
-
-    /// <summary>Gets or sets the timestamp of the last commit processed.</summary>
-    public required DateTimeOffset? GitHubLastCommitTimestamp { get; init; }
+    /// <summary>
+    /// Information about the GitHubRepo
+    /// </summary>
+    public required GitHubRepository GitHubRepository { get; init; }
 }

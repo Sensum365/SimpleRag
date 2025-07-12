@@ -18,7 +18,7 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
     {
         SharedGuards(source);
 
-        if (string.IsNullOrWhiteSpace(source.GitHubOwner) || string.IsNullOrWhiteSpace(source.GitHubRepo))
+        if (source.GitHubRepository == null || string.IsNullOrWhiteSpace(source.GitHubRepository.Owner) || string.IsNullOrWhiteSpace(source.GitHubRepository.Name))
         {
             throw new FileContentException("GitHub Owner and Repo is not defined");
         }
@@ -28,15 +28,15 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
         OnNotifyProgress("Exploring GitHub");
         var gitHubClient = gitHubQuery.GetGitHubClient();
 
-        var commit = await gitHubQuery.GetLatestCommitAsync(gitHubClient, source.GitHubOwner, source.GitHubRepo);
+        var commit = await gitHubQuery.GetLatestCommitAsync(gitHubClient, source.GitHubRepository);
         cancellationToken.ThrowIfCancellationRequested();
-        if (source.GitHubLastCommitTimestamp.HasValue && commit.Committer.Date <= source.GitHubLastCommitTimestamp.Value)
+        if (source.GitHubRepository.LastCommitTimestamp.HasValue && commit.Committer.Date <= source.GitHubRepository.LastCommitTimestamp.Value)
         {
             OnNotifyProgress("No new Commits detected in the repo so skipping retrieval");
             return null;
         }
 
-        var treeResponse = await gitHubQuery.GetTreeAsync(gitHubClient, commit, source.GitHubOwner, source.GitHubRepo, source.Recursive);
+        var treeResponse = await gitHubQuery.GetTreeAsync(gitHubClient, commit, source.GitHubRepository, source.Recursive);
         fileExtensionType = "." + fileExtensionType;
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -74,7 +74,7 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
             cancellationToken.ThrowIfCancellationRequested();
 
             OnNotifyProgress("Downloading file-content from GitHub", counter, items.Length, pathWithoutRoot);
-            var content = await gitHubQuery.GetFileContentAsync(gitHubClient, source.GitHubOwner, source.GitHubRepo, path);
+            var content = await gitHubQuery.GetFileContentAsync(gitHubClient, source.GitHubRepository, path);
             if (string.IsNullOrWhiteSpace(content))
             {
                 continue;

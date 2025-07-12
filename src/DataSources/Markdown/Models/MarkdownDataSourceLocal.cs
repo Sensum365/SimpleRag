@@ -5,7 +5,7 @@ namespace SimpleRag.DataSources.Markdown.Models;
 /// <summary>
 /// Represents a markdown source located on the local file system.
 /// </summary>
-public class MarkdownDataSourceLocal : MarkdownSource
+public class MarkdownDataSourceLocal : MarkdownDataSource
 {
     /// <summary>
     /// Converts this instance to a <see cref="FileContentSourceLocal"/>.

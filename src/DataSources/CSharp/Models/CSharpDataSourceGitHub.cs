@@ -1,27 +1,17 @@
-﻿using SimpleRag.DataSources.Models;
-using SimpleRag.FileContent.Models;
+﻿using SimpleRag.FileContent.Models;
+using SimpleRag.Integrations.GitHub;
 
 namespace SimpleRag.DataSources.CSharp.Models;
 
 /// <summary>
 /// A C# Based Source that should be retrieved from GitHub
 /// </summary>
-public class CSharpDataSourceGitHub : DataSource
+public class CSharpDataSourceGitHub : CSharpDataSource
 {
     /// <summary>
-    /// Gets or sets the owner of the repository on GitHub.
+    /// Information about the GitHubRepo
     /// </summary>
-    public required string GitHubOwner { get; init; }
-
-    /// <summary>
-    /// Gets or sets the name of the repository on GitHub.
-    /// </summary>
-    public required string GitHubRepo { get; init; }
-
-    /// <summary>
-    /// Gets or sets the timestamp of the last commit to check for changes.
-    /// </summary>
-    public DateTimeOffset? GitHubLastCommitTimestamp { get; init; }
+    public required GitHubRepository GitHubRepository { get; init; }
 
     /// <summary>
     /// Converts this object to a <see cref="FileContentSourceGitHub"/> object.
@@ -32,9 +22,7 @@ public class CSharpDataSourceGitHub : DataSource
         return new FileContentSourceGitHub
         {
             FileIgnorePatterns = FileIgnorePatterns,
-            GitHubLastCommitTimestamp = GitHubLastCommitTimestamp,
-            GitHubOwner = GitHubOwner,
-            GitHubRepo = GitHubRepo,
+            GitHubRepository = GitHubRepository,
             Path = Path,
             Recursive = Recursive
         };

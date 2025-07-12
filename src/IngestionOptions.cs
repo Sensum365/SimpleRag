@@ -1,5 +1,5 @@
 ﻿using JetBrains.Annotations;
-using SimpleRag.DataSources.CSharp.Models;
+using SimpleRag.Models;
 
 namespace SimpleRag;
 
@@ -9,6 +9,8 @@ namespace SimpleRag;
 [PublicAPI]
 public class IngestionOptions
 {
-    /// <summary>Gets or sets an optional function to build content for C# sources.</summary>
-    public Func<CSharpChunk, string>? CSharpContentFormatBuilder { get; set; }
+    /// <summary>
+    /// Action to execute on progress
+    /// </summary>
+    public Action<ProgressNotification>? OnProgressNotification { get; set; }
 }

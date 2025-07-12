@@ -5,7 +5,7 @@ namespace SimpleRag.DataSources.Markdown.Models;
 /// <summary>
 /// Base class for markdown sources.
 /// </summary>
-public abstract class MarkdownSource : DataSource
+public abstract class MarkdownDataSource : DataSource
 {
     /// <summary>Gets or sets a value indicating whether HTML comments should be ignored.</summary>
     public bool IgnoreCommentedOutContent { get; init; } = true;
@@ -24,4 +24,6 @@ public abstract class MarkdownSource : DataSource
 
     /// <summary>Gets or sets the minimum size of a chunk in characters.</summary>
     public int? IgnoreChunkIfLessThanThisAmountOfChars { get; init; } = 25;
+
+    //todo support content format builder
 }

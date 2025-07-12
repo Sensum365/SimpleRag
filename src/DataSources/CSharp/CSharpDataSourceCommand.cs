@@ -35,23 +35,22 @@ public class CSharpDataSourceCommand(
     /// <summary>
     /// Ingest a Local C# Source
     /// </summary>
-    /// <param name="source">The Source to ingest</param>
-    /// <param name="contentFormatBuilder">Builder of the desired format of the Content to be vectorized or leave null to use the default provided format</param>
+    /// <param name="dataSource">The Source to ingest</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task IngestAsync(CSharpDataSourceLocal source, Func<CSharpChunk, string>? contentFormatBuilder = null, CancellationToken cancellationToken = default)
+    public async Task IngestAsync(CSharpDataSourceLocal dataSource, CancellationToken cancellationToken = default)
     {
-        Guards(source);
+        Guards(dataSource);
         localFilesQuery.NotifyProgress += OnNotifyProgress;
         try
         {
-            FileContent.Models.FileContent[]? files = await localFilesQuery.GetRawContentForSourceAsync(source.AsFileContentSource(), "cs", cancellationToken);
+            FileContent.Models.FileContent[]? files = await localFilesQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "cs", cancellationToken);
             if (files == null)
             {
                 OnNotifyProgress("Nothing new to Ingest so skipping");
                 return;
             }
 
-            await IngestAsync(source, contentFormatBuilder, files, cancellationToken);
+            await IngestAsync(dataSource, files, cancellationToken);
         }
         finally
         {
@@ -62,23 +61,22 @@ public class CSharpDataSourceCommand(
     /// <summary>
     /// Ingest a GitHub C# Source
     /// </summary>
-    /// <param name="source">The Source to ingest</param>
-    /// <param name="contentFormatBuilder">Builder of the desired format of the Content to be vectorized or leave null to use the default provided format</param>
+    /// <param name="dataSource">The Source to ingest</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task IngestAsync(CSharpDataSourceGitHub source, Func<CSharpChunk, string>? contentFormatBuilder = null, CancellationToken cancellationToken = default)
+    public async Task IngestAsync(CSharpDataSourceGitHub dataSource, CancellationToken cancellationToken = default)
     {
-        Guards(source);
+        Guards(dataSource);
         gitHubFilesQuery.NotifyProgress += OnNotifyProgress;
         try
         {
-            FileContent.Models.FileContent[]? files = await gitHubFilesQuery.GetRawContentForSourceAsync(source.AsFileContentSource(), "cs", cancellationToken);
+            FileContent.Models.FileContent[]? files = await gitHubFilesQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "cs", cancellationToken);
             if (files == null)
             {
                 OnNotifyProgress("Nothing new to Ingest so skipping");
                 return;
             }
 
-            await IngestAsync(source, contentFormatBuilder, files, cancellationToken);
+            await IngestAsync(dataSource, files, cancellationToken);
         }
         finally
         {
@@ -86,14 +84,14 @@ public class CSharpDataSourceCommand(
         }
     }
 
-    private async Task IngestAsync(DataSource source, Func<CSharpChunk, string>? contentFormatBuilder, FileContent.Models.FileContent[] files, CancellationToken cancellationToken = default)
+    private async Task IngestAsync(CSharpDataSource dataSource, FileContent.Models.FileContent[] files, CancellationToken cancellationToken = default)
     {
         List<CSharpChunk> codeEntities = [];
 
         foreach (FileContent.Models.FileContent file in files)
         {
             var numberOfLine = file.Content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
-            if (source.IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > source.IgnoreFileIfMoreThanThisNumberOfLines)
+            if (dataSource.IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > dataSource.IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;
             }
@@ -109,103 +107,107 @@ public class CSharpDataSourceCommand(
 
         OnNotifyProgress($"{files.Length} Files was transformed into {codeEntities.Count} Code Entities for Vector Import. Preparing Embedding step...");
 
-        contentFormatBuilder ??= chunk =>
+        Func<CSharpChunk, string>? cSharpContentFormatBuilder = dataSource.CSharpContentFormatBuilder;
+        if (cSharpContentFormatBuilder == null)
         {
-            StringBuilder sb = new();
-            string parentDetails = string.Empty;
-            if (!string.IsNullOrWhiteSpace(chunk.Parent))
+            cSharpContentFormatBuilder = chunk =>
             {
-                parentDetails = $" parentKind=\"{chunk.ParentKindAsString}\" parent=\"{chunk.Parent}\"";
-            }
+                StringBuilder sb = new();
+                string parentDetails = string.Empty;
+                if (!string.IsNullOrWhiteSpace(chunk.Parent))
+                {
+                    parentDetails = $" parentKind=\"{chunk.ParentKindAsString}\" parent=\"{chunk.Parent}\"";
+                }
 
-            sb.AppendLine($"<code name=\"{chunk.Name}\" kind=\"{chunk.KindAsString}\" namespace=\"{chunk.Namespace}\"{parentDetails}>");
-            sb.AppendLine(chunk.XmlSummary + " " + chunk.Value);
-            if (chunk.Dependencies.Count > 0)
-            {
-                sb.AppendLine("<dependencies>");
-                sb.AppendLine(string.Join(Environment.NewLine, chunk.Dependencies.Select(x => "- " + x)));
-                sb.AppendLine("</dependencies>");
-            }
+                sb.AppendLine($"<code name=\"{chunk.Name}\" kind=\"{chunk.KindAsString}\" namespace=\"{chunk.Namespace}\"{parentDetails}>");
+                sb.AppendLine(chunk.XmlSummary + " " + chunk.Value);
+                if (chunk.Dependencies.Count > 0)
+                {
+                    sb.AppendLine("<dependencies>");
+                    sb.AppendLine(string.Join(Environment.NewLine, chunk.Dependencies.Select(x => "- " + x)));
+                    sb.AppendLine("</dependencies>");
+                }
 
-            if (chunk.References is { Count: > 0 })
-            {
-                sb.AppendLine("<used_by>");
-                sb.AppendLine(string.Join(Environment.NewLine, chunk.References.Select(x => "- " + x.Path)));
-                sb.AppendLine("</used_by>");
-            }
+                if (chunk.References is { Count: > 0 })
+                {
+                    sb.AppendLine("<used_by>");
+                    sb.AppendLine(string.Join(Environment.NewLine, chunk.References.Select(x => "- " + x.Path)));
+                    sb.AppendLine("</used_by>");
+                }
 
-            sb.AppendLine("</code>");
-            return sb.ToString();
-        };
-
-        //Creating References
-        foreach (CSharpChunk codeEntity in codeEntities)
-        {
-            switch (codeEntity.Kind)
-            {
-                case CSharpKind.Enum:
-                case CSharpKind.Interface:
-                case CSharpKind.Constructor:
-                case CSharpKind.Class:
-                case CSharpKind.Struct:
-                case CSharpKind.Record:
-                    codeEntity.References = codeEntities.Where(x => x != codeEntity && x.Dependencies.Any(y => y == codeEntity.Name)).ToList();
-                    break;
-            }
-        }
-
-        VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == source.CollectionId && x.SourceId == source.Id, cancellationToken);
-
-        int counter = 0;
-        List<string> idsToKeep = [];
-
-        foreach (CSharpChunk codeEntity in codeEntities)
-        {
-            counter++;
-
-            OnNotifyProgress("Embedding Data", counter, codeEntities.Count);
-
-            string content = contentFormatBuilder.Invoke(codeEntity);
-
-            VectorEntity entity = new()
-            {
-                Id = Guid.NewGuid().ToString(),
-                SourceId = source.Id,
-                ContentId = null,
-                SourceCollectionId = source.CollectionId,
-                SourceKind = SourceKind,
-                SourcePath = codeEntity.SourcePath,
-                ContentKind = codeEntity.KindAsString,
-                ContentParent = codeEntity.Parent,
-                ContentParentKind = codeEntity.ParentKindAsString,
-                ContentName = codeEntity.Name,
-                ContentNamespace = codeEntity.Namespace,
-                ContentDependencies = codeEntity.Dependencies.Count == 0 ? null : string.Join(";", codeEntity.Dependencies),
-                ContentReferences = codeEntity.References is { Count: 0 } ? null : string.Join(";", codeEntity.References?.Select(x => x.Path) ?? []),
-                ContentDescription = codeEntity.XmlSummary,
-                Content = content,
+                sb.AppendLine("</code>");
+                return sb.ToString();
             };
 
-            string contentCompareKey = entity.GetContentCompareKey();
-            var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == contentCompareKey);
-            if (existing == null)
+            //Creating References
+            foreach (CSharpChunk codeEntity in codeEntities)
             {
-                await RetryHelper.ExecuteWithRetryAsync(async () => { await vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
+                switch (codeEntity.Kind)
+                {
+                    case CSharpKind.Enum:
+                    case CSharpKind.Interface:
+                    case CSharpKind.Constructor:
+                    case CSharpKind.Class:
+                    case CSharpKind.Struct:
+                    case CSharpKind.Record:
+                        codeEntity.References = codeEntities.Where(x => x != codeEntity && x.Dependencies.Any(y => y == codeEntity.Name)).ToList();
+                        break;
+                }
             }
-            else
+
+            VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == dataSource.CollectionId && x.SourceId == dataSource.Id, cancellationToken);
+
+            int counter = 0;
+            List<string> idsToKeep = [];
+
+            foreach (CSharpChunk codeEntity in codeEntities)
             {
-                idsToKeep.Add(existing.Id);
+                counter++;
+
+                OnNotifyProgress("Embedding Data", counter, codeEntities.Count);
+
+                string content = cSharpContentFormatBuilder.Invoke(codeEntity);
+
+                VectorEntity entity = new()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    SourceId = dataSource.Id,
+                    ContentId = null,
+                    SourceCollectionId = dataSource.CollectionId,
+                    SourceKind = SourceKind,
+                    SourcePath = codeEntity.SourcePath,
+                    ContentKind = codeEntity.KindAsString,
+                    ContentParent = codeEntity.Parent,
+                    ContentParentKind = codeEntity.ParentKindAsString,
+                    ContentName = codeEntity.Name,
+                    ContentNamespace = codeEntity.Namespace,
+                    ContentDependencies = codeEntity.Dependencies.Count == 0 ? null : string.Join(";", codeEntity.Dependencies),
+                    ContentReferences = codeEntity.References is { Count: 0 } ? null : string.Join(";", codeEntity.References?.Select(x => x.Path) ?? []),
+                    ContentDescription = codeEntity.XmlSummary,
+                    Content = content,
+                };
+
+                string contentCompareKey = entity.GetContentCompareKey();
+                var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == contentCompareKey);
+                if (existing == null)
+                {
+                    await RetryHelper.ExecuteWithRetryAsync(async () => { await vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
+                }
+                else
+                {
+                    idsToKeep.Add(existing.Id);
+                }
             }
-        }
 
-        var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
-        if (idsToDelete.Count != 0)
-        {
-            OnNotifyProgress($"Removing {idsToDelete.Count} entities that are no longer in source...");
-            await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
-        }
+            var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
+            if (idsToDelete.Count != 0)
+            {
+                OnNotifyProgress($"Removing {idsToDelete.Count} entities that are no longer in source...");
+                await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
+            }
 
-        OnNotifyProgress("Done");
+            OnNotifyProgress("Done");
+        }
     }
 
     private static void Guards(DataSource source)

@@ -17,14 +17,14 @@ public class Ingestion(CSharpDataSourceCommand cSharpDataSourceCommand, Markdown
     /// <summary>
     /// Ingests the provided data sources.
     /// </summary>
-    public async Task IngestAsync(IEnumerable<DataSource> dataSources, IngestionOptions? options = null, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
+    public async Task IngestAsync(IEnumerable<DataSource> dataSources, IngestionOptions? options = null, CancellationToken cancellationToken = default)
     {
         try
         {
-            if (onProgressNotification != null)
+            if (options?.OnProgressNotification != null)
             {
-                cSharpDataSourceCommand.NotifyProgress += onProgressNotification;
-                markdownDataSourceCommand.NotifyProgress += onProgressNotification;
+                cSharpDataSourceCommand.NotifyProgress += options.OnProgressNotification;
+                markdownDataSourceCommand.NotifyProgress += options.OnProgressNotification;
             }
 
             dataSources = dataSources.ToList();
@@ -40,26 +40,26 @@ public class Ingestion(CSharpDataSourceCommand cSharpDataSourceCommand, Markdown
                 switch (source)
                 {
                     case CSharpDataSourceLocal cSharpDataSourceLocal:
-                        await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceLocal, options?.CSharpContentFormatBuilder, cancellationToken);
+                        await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceLocal, cancellationToken);
                         break;
                     case CSharpDataSourceGitHub cSharpDataSourceGitHub:
-                        await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceGitHub, options?.CSharpContentFormatBuilder, cancellationToken);
+                        await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceGitHub, cancellationToken);
                         break;
                     case MarkdownDataSourceLocal markdownDataSourceLocal:
-                        await markdownDataSourceCommand.IngestAsync(markdownDataSourceLocal, cancellationToken); //todo support content format builder
+                        await markdownDataSourceCommand.IngestAsync(markdownDataSourceLocal, cancellationToken);
                         break;
                     case MarkdownDataSourceGitHub markdownDataSourceGitHub:
-                        await markdownDataSourceCommand.IngestAsync(markdownDataSourceGitHub, cancellationToken); //todo support content format builder
+                        await markdownDataSourceCommand.IngestAsync(markdownDataSourceGitHub, cancellationToken);
                         break;
                 }
             }
         }
         finally
         {
-            if (onProgressNotification != null)
+            if (options?.OnProgressNotification != null)
             {
-                cSharpDataSourceCommand.NotifyProgress -= onProgressNotification;
-                markdownDataSourceCommand.NotifyProgress -= onProgressNotification;
+                cSharpDataSourceCommand.NotifyProgress -= options.OnProgressNotification;
+                markdownDataSourceCommand.NotifyProgress -= options.OnProgressNotification;
             }
         }
     }

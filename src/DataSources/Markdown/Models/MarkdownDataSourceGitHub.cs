@@ -1,20 +1,18 @@
 ﻿using SimpleRag.FileContent.Models;
+using SimpleRag.Integrations.GitHub;
 
 namespace SimpleRag.DataSources.Markdown.Models;
 
 /// <summary>
 /// Represents a markdown source retrieved from GitHub.
 /// </summary>
-public class MarkdownDataSourceGitHub : MarkdownSource
+public class MarkdownDataSourceGitHub : MarkdownDataSource
 {
-    /// <summary>Gets or sets the GitHub repository owner.</summary>
-    public required string GitHubOwner { get; init; }
+    /// <summary>
+    /// Information about the GitHubRepo
+    /// </summary>
+    public required GitHubRepository GitHubRepository { get; init; }
 
-    /// <summary>Gets or sets the GitHub repository name.</summary>
-    public required string GitHubRepo { get; init; }
-
-    /// <summary>Gets or sets the last commit timestamp processed.</summary>
-    public DateTimeOffset? GitHubLastCommitTimestamp { get; init; }
 
     /// <summary>
     /// Converts this instance to a <see cref="FileContentSourceGitHub"/>.
@@ -25,9 +23,7 @@ public class MarkdownDataSourceGitHub : MarkdownSource
         return new FileContentSourceGitHub
         {
             FileIgnorePatterns = FileIgnorePatterns,
-            GitHubLastCommitTimestamp = GitHubLastCommitTimestamp,
-            GitHubOwner = GitHubOwner,
-            GitHubRepo = GitHubRepo,
+            GitHubRepository = GitHubRepository,
             Path = Path,
             Recursive = Recursive
         };
