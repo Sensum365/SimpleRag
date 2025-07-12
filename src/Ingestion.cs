@@ -19,47 +19,30 @@ public class Ingestion(CSharpDataSourceCommand cSharpDataSourceCommand, Markdown
     /// </summary>
     public async Task IngestAsync(IEnumerable<DataSource> dataSources, IngestionOptions? options = null, CancellationToken cancellationToken = default)
     {
-        try
+        dataSources = dataSources.ToList();
+        string[] idCombos = dataSources.Select(x => x.CollectionId + " | " + x.Id).ToArray();
+        if (idCombos.Length != idCombos.Distinct().Count())
         {
-            if (options?.OnProgressNotification != null)
-            {
-                cSharpDataSourceCommand.NotifyProgress += options.OnProgressNotification;
-                markdownDataSourceCommand.NotifyProgress += options.OnProgressNotification;
-            }
-
-            dataSources = dataSources.ToList();
-            string[] idCombos = dataSources.Select(x => x.CollectionId + " | " + x.Id).ToArray();
-            if (idCombos.Length != idCombos.Distinct().Count())
-            {
-                throw new SourceException("One or more datasource CollectionId/SourceId combinations are not unique (which would result in them overwriting each other in the vector store)");
-            }
-
-            foreach (DataSource source in dataSources)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                switch (source)
-                {
-                    case CSharpDataSourceLocal cSharpDataSourceLocal:
-                        await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceLocal, cancellationToken);
-                        break;
-                    case CSharpDataSourceGitHub cSharpDataSourceGitHub:
-                        await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceGitHub, cancellationToken);
-                        break;
-                    case MarkdownDataSourceLocal markdownDataSourceLocal:
-                        await markdownDataSourceCommand.IngestAsync(markdownDataSourceLocal, cancellationToken);
-                        break;
-                    case MarkdownDataSourceGitHub markdownDataSourceGitHub:
-                        await markdownDataSourceCommand.IngestAsync(markdownDataSourceGitHub, cancellationToken);
-                        break;
-                }
-            }
+            throw new SourceException("One or more datasource CollectionId/SourceId combinations are not unique (which would result in them overwriting each other in the vector store)");
         }
-        finally
+
+        foreach (DataSource source in dataSources)
         {
-            if (options?.OnProgressNotification != null)
+            cancellationToken.ThrowIfCancellationRequested();
+            switch (source)
             {
-                cSharpDataSourceCommand.NotifyProgress -= options.OnProgressNotification;
-                markdownDataSourceCommand.NotifyProgress -= options.OnProgressNotification;
+                case CSharpDataSourceLocal cSharpDataSourceLocal:
+                    await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceLocal, options?.OnProgressNotification, cancellationToken);
+                    break;
+                case CSharpDataSourceGitHub cSharpDataSourceGitHub:
+                    await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceGitHub, options?.OnProgressNotification, cancellationToken);
+                    break;
+                case MarkdownDataSourceLocal markdownDataSourceLocal:
+                    await markdownDataSourceCommand.IngestAsync(markdownDataSourceLocal, options?.OnProgressNotification, cancellationToken);
+                    break;
+                case MarkdownDataSourceGitHub markdownDataSourceGitHub:
+                    await markdownDataSourceCommand.IngestAsync(markdownDataSourceGitHub, options?.OnProgressNotification, cancellationToken);
+                    break;
             }
         }
     }

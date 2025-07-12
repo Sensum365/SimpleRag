@@ -2,6 +2,7 @@
 using Octokit;
 using SimpleRag.FileContent.Models;
 using SimpleRag.Integrations.GitHub;
+using SimpleRag.Models;
 
 namespace SimpleRag.FileContent;
 
@@ -14,7 +15,7 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
     /// <summary>
     /// Gets the raw content for a GitHub source.
     /// </summary>
-    public async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceGitHub source, string fileExtensionType, CancellationToken cancellationToken = default)
+    public async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceGitHub source, string fileExtensionType, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         SharedGuards(source);
 
@@ -25,14 +26,14 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
 
         List<Models.FileContent> result = [];
 
-        OnNotifyProgress("Exploring GitHub");
+        onProgressNotification?.Invoke(ProgressNotification.Create("Exploring GitHub"));
         var gitHubClient = gitHubQuery.GetGitHubClient();
 
         var commit = await gitHubQuery.GetLatestCommitAsync(gitHubClient, source.GitHubRepository);
         cancellationToken.ThrowIfCancellationRequested();
         if (source.GitHubRepository.LastCommitTimestamp.HasValue && commit.Committer.Date <= source.GitHubRepository.LastCommitTimestamp.Value)
         {
-            OnNotifyProgress("No new Commits detected in the repo so skipping retrieval");
+            onProgressNotification?.Invoke(ProgressNotification.Create("No new Commits detected in the repo so skipping retrieval"));
             return null;
         }
 
@@ -57,7 +58,7 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
             items = treeResponse.Tree.Where(x => x.Type == TreeType.Blob && x.Path.StartsWith(prefix) && x.Path.EndsWith(fileExtensionType, StringComparison.InvariantCultureIgnoreCase)).ToArray();
         }
 
-        NotifyNumberOfFilesFound(items.Length);
+        NotifyNumberOfFilesFound(items.Length, onProgressNotification);
         List<string> ignoredFiles = [];
         int counter = 0;
         foreach (string path in items.Select(x => x.Path))
@@ -66,14 +67,14 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
             counter++;
             if (source.IgnoreFile(path))
             {
-                OnNotifyProgress("Ignoring file from GitHub", counter, items.Length, pathWithoutRoot);
+                onProgressNotification?.Invoke(ProgressNotification.Create("Ignoring file from GitHub", counter, items.Length, pathWithoutRoot));
                 ignoredFiles.Add(path);
                 continue;
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            OnNotifyProgress("Downloading file-content from GitHub", counter, items.Length, pathWithoutRoot);
+            onProgressNotification?.Invoke(ProgressNotification.Create("Downloading file-content from GitHub", counter, items.Length, pathWithoutRoot));
             var content = await gitHubQuery.GetFileContentAsync(gitHubClient, source.GitHubRepository, path);
             if (string.IsNullOrWhiteSpace(content))
             {
@@ -83,7 +84,7 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
             result.Add(new Models.FileContent(path, content, pathWithoutRoot));
         }
 
-        NotifyIgnoredFiles(ignoredFiles);
+        NotifyIgnoredFiles(ignoredFiles, onProgressNotification);
 
         return result.ToArray();
     }

@@ -13,14 +13,15 @@ public class SearchResult
 
     /// <summary>
     /// Formats the result as an XML fragment.
+    /// <param name="citationBuilder">Builder of the desired citation</param>
     /// </summary>
-    public string GetAsStringResult()
+    public string GetAsStringResult(Func<VectorEntity, string>? citationBuilder = null)
     {
         StringBuilder sb = new();
         sb.AppendLine("<search_results>");
         foreach (var entity in Entities)
         {
-            sb.AppendLine(entity.Record.GetAsString());
+            sb.AppendLine(entity.Record.GetAsString(citationBuilder));
         }
 
         sb.AppendLine("</search_results>");

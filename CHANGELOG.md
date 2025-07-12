@@ -1,12 +1,16 @@
 # Changelog: SimpleRag
 
 ## Version 0.0.1-preview8 (11th of July 2025)
+- **WARNING: Quite a few breaking changes in this version to streamline and prepare for first non-preview**
 - Reintroduce this changelog for the previews (People need to know what is changing!)
 - Introduced CSharpDatasource (layer between the public and base Datasource)
 - GitHub Repo-info on Datasources are now their own object to avoid copy/paste code
 - Renamed MarkdownSource to MarkdownDatasource
 - Moved `CSharpContentFormatBuilder` from `IngestionOptions` to the individual datasources
 - Move `OnProgressNotification` into `IngestionOptions` to ensure future backward compatibilty
+- Remove `ProgressNotificationBase` (no more use of events internally)
+- Enabled Treat Warnings as Errors
+- Added option to provide a citation builder for search-results
 
 ---
 

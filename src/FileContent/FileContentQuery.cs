@@ -9,7 +9,7 @@ namespace SimpleRag.FileContent;
 /// Base class for querying file content sources.
 /// </summary>
 [PublicAPI]
-public abstract class FileContentQuery : ProgressNotificationBase
+public abstract class FileContentQuery
 {
     /// <summary>
     /// Guards for input
@@ -28,20 +28,22 @@ public abstract class FileContentQuery : ProgressNotificationBase
     /// Notify how many Number of files found
     /// </summary>
     /// <param name="numberOfFiles">Number of files</param>
-    protected void NotifyNumberOfFilesFound(int numberOfFiles)
+    /// <param name="onProgressNotification">Notification</param>
+    protected void NotifyNumberOfFilesFound(int numberOfFiles, Action<ProgressNotification>? onProgressNotification)
     {
-        OnNotifyProgress($"Found {numberOfFiles} files");
+        onProgressNotification?.Invoke(ProgressNotification.Create($"Found {numberOfFiles} files"));
     }
 
     /// <summary>
     /// Notify of what files where ignored
     /// </summary>
     /// <param name="ignoredFiles"></param>
-    protected void NotifyIgnoredFiles(List<string> ignoredFiles)
+    /// <param name="onProgressNotification">Notification</param>
+    protected void NotifyIgnoredFiles(List<string> ignoredFiles, Action<ProgressNotification>? onProgressNotification)
     {
         if (ignoredFiles.Count > 0)
         {
-            OnNotifyProgress($"{ignoredFiles.Count} Files Ignored");
+            onProgressNotification?.Invoke(ProgressNotification.Create($"{ignoredFiles.Count} Files Ignored"));
         }
     }
 

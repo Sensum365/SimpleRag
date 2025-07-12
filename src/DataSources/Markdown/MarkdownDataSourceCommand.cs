@@ -19,7 +19,7 @@ public class MarkdownDataSourceCommand(
     VectorStoreQuery vectorStoreQuery,
     VectorStoreCommand vectorStoreCommand,
     FileContentGitHubQuery gitHubFileContentQuery,
-    FileContentLocalQuery localFileContentQuery) : ProgressNotificationBase
+    FileContentLocalQuery localFileContentQuery)
 {
     /// <summary>The source kind handled by this command.</summary>
     public const string SourceKind = "Markdown";
@@ -28,45 +28,43 @@ public class MarkdownDataSourceCommand(
     /// Ingests a local markdown source.
     /// </summary>
     /// <param name="dataSource">The source to ingest.</param>
+    /// <param name="onProgressNotification">Notification</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task IngestAsync(MarkdownDataSourceLocal dataSource, CancellationToken cancellationToken = default)
+    public async Task IngestAsync(MarkdownDataSourceLocal dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         Guards(dataSource);
 
-        localFileContentQuery.NotifyProgress += OnNotifyProgress;
-
-        FileContent.Models.FileContent[]? rawFiles = await localFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md", cancellationToken);
+        FileContent.Models.FileContent[]? rawFiles = await localFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md", onProgressNotification, cancellationToken);
         if (rawFiles == null)
         {
-            OnNotifyProgress("Nothing new to Ingest so skipping");
+            onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
             return;
         }
 
-        await IngestAsync(dataSource, rawFiles, cancellationToken);
+        await IngestAsync(dataSource, rawFiles, onProgressNotification, cancellationToken);
     }
 
     /// <summary>
     /// Ingests a GitHub based markdown source.
     /// </summary>
     /// <param name="dataSource">The source to ingest.</param>
+    /// <param name="onProgressNotification">Notification</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task IngestAsync(MarkdownDataSourceGitHub dataSource, CancellationToken cancellationToken = default)
+    public async Task IngestAsync(MarkdownDataSourceGitHub dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         Guards(dataSource);
 
-        gitHubFileContentQuery.NotifyProgress += OnNotifyProgress;
-
-        FileContent.Models.FileContent[]? rawFiles = await gitHubFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md", cancellationToken);
+        FileContent.Models.FileContent[]? rawFiles = await gitHubFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md", onProgressNotification, cancellationToken);
         if (rawFiles == null)
         {
-            OnNotifyProgress("Nothing new to Ingest so skipping");
+            onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
             return;
         }
 
-        await IngestAsync(dataSource, rawFiles, cancellationToken);
+        await IngestAsync(dataSource, rawFiles, onProgressNotification, cancellationToken);
     }
 
-    private async Task IngestAsync(MarkdownDataSource dataSource, FileContent.Models.FileContent[] rawFiles, CancellationToken cancellationToken = default)
+    private async Task IngestAsync(MarkdownDataSource dataSource, FileContent.Models.FileContent[] rawFiles, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         List<VectorEntity> entries = [];
 
@@ -153,7 +151,8 @@ public class MarkdownDataSourceCommand(
         foreach (var entity in entries)
         {
             counter++;
-            OnNotifyProgress("Embedding Data", counter, entries.Count);
+
+            onProgressNotification?.Invoke(ProgressNotification.Create("Embedding Data", counter, entries.Count));
             var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == entity.GetContentCompareKey());
             if (existing == null)
             {
@@ -168,11 +167,11 @@ public class MarkdownDataSourceCommand(
         var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
         if (idsToDelete.Count != 0)
         {
-            OnNotifyProgress($"Removing {idsToDelete.Count} entities that are no longer in source");
+            onProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source"));
             await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
         }
 
-        OnNotifyProgress("Done");
+        onProgressNotification?.Invoke(ProgressNotification.Create("Done"));
     }
 
 

@@ -1,6 +1,7 @@
-﻿using System.Text;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using SimpleRag.FileContent.Models;
+using SimpleRag.Models;
+using System.Text;
 
 namespace SimpleRag.FileContent;
 
@@ -10,14 +11,14 @@ namespace SimpleRag.FileContent;
 [PublicAPI]
 public class FileContentLocalQuery : FileContentQuery
 {
-    internal async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceLocal source, string fileExtensionType, CancellationToken cancellationToken = default)
+    internal async Task<Models.FileContent[]?> GetRawContentForSourceAsync(FileContentSourceLocal source, string fileExtensionType, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         SharedGuards(source);
 
         List<Models.FileContent> result = [];
 
         string[] files = Directory.GetFiles(source.Path, "*." + fileExtensionType, source.Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-        NotifyNumberOfFilesFound(files.Length);
+        NotifyNumberOfFilesFound(files.Length, onProgressNotification);
 
         List<string> ignoredFiles = [];
         int counter = 0;
@@ -30,13 +31,13 @@ public class FileContentLocalQuery : FileContentQuery
             }
 
             counter++;
-            OnNotifyProgress("Parsing Local files from Disk", counter, files.Length);
+            onProgressNotification?.Invoke(ProgressNotification.Create("Parsing Local files from Disk", counter, files.Length));
             var pathWithoutRoot = path.Replace(source.Path, string.Empty);
             string content = await File.ReadAllTextAsync(path, Encoding.UTF8, cancellationToken);
             result.Add(new Models.FileContent(path, content, pathWithoutRoot));
         }
 
-        NotifyIgnoredFiles(ignoredFiles);
+        NotifyIgnoredFiles(ignoredFiles, onProgressNotification);
 
         return result.ToArray();
     }

@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using SimpleRag.DataSources.CSharp.Models;
 using SimpleRag.VectorStorage.Models;
 using System.Linq.Expressions;
 

@@ -85,9 +85,15 @@ public class VectorEntity
 
     /// <summary>
     /// Gets the entity as an XML fragment.
+    /// <param name="citationBuilder">Builder of the desired citation</param>
     /// </summary>
-    public string GetAsString()
+    public string GetAsString(Func<VectorEntity, string>? citationBuilder = null)
     {
-        return $"<search_result citation=\"todo\">{Content}</search_result>"; //todo: Citation url support
+        if (citationBuilder != null)
+        {
+            return $"<search_result citation=\"{citationBuilder.Invoke(this)}\">{Content}</search_result>";
+        }
+
+        return $"<search_result>{Content}</search_result>";
     }
 }

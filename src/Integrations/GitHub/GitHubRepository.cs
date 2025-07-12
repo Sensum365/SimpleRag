@@ -18,5 +18,5 @@ public class GitHubRepository
     /// <summary>
     /// Gets or sets the timestamp of the last commit processed.
     /// </summary>
-    public required DateTimeOffset? LastCommitTimestamp { get; init; }
+    public DateTimeOffset? LastCommitTimestamp { get; init; }
 }

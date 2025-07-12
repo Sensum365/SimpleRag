@@ -25,7 +25,7 @@ public class CSharpDataSourceCommand(
     VectorStoreCommand vectorStoreCommand,
     VectorStoreQuery vectorStoreQuery,
     FileContentGitHubQuery gitHubFilesQuery,
-    FileContentLocalQuery localFilesQuery) : ProgressNotificationBase
+    FileContentLocalQuery localFilesQuery)
 {
     /// <summary>
     /// The sourceKind this command ingest
@@ -36,55 +36,41 @@ public class CSharpDataSourceCommand(
     /// Ingest a Local C# Source
     /// </summary>
     /// <param name="dataSource">The Source to ingest</param>
+    /// <param name="onProgressNotification"></param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task IngestAsync(CSharpDataSourceLocal dataSource, CancellationToken cancellationToken = default)
+    public async Task IngestAsync(CSharpDataSourceLocal dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         Guards(dataSource);
-        localFilesQuery.NotifyProgress += OnNotifyProgress;
-        try
+        FileContent.Models.FileContent[]? files = await localFilesQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "cs", onProgressNotification, cancellationToken);
+        if (files == null)
         {
-            FileContent.Models.FileContent[]? files = await localFilesQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "cs", cancellationToken);
-            if (files == null)
-            {
-                OnNotifyProgress("Nothing new to Ingest so skipping");
-                return;
-            }
+            onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
+            return;
+        }
 
-            await IngestAsync(dataSource, files, cancellationToken);
-        }
-        finally
-        {
-            localFilesQuery.NotifyProgress -= OnNotifyProgress;
-        }
+        await IngestAsync(dataSource, files, onProgressNotification, cancellationToken);
     }
 
     /// <summary>
     /// Ingest a GitHub C# Source
     /// </summary>
     /// <param name="dataSource">The Source to ingest</param>
+    /// <param name="onProgressNotification">Notification Progress</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task IngestAsync(CSharpDataSourceGitHub dataSource, CancellationToken cancellationToken = default)
+    public async Task IngestAsync(CSharpDataSourceGitHub dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         Guards(dataSource);
-        gitHubFilesQuery.NotifyProgress += OnNotifyProgress;
-        try
+        FileContent.Models.FileContent[]? files = await gitHubFilesQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "cs", onProgressNotification, cancellationToken);
+        if (files == null)
         {
-            FileContent.Models.FileContent[]? files = await gitHubFilesQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "cs", cancellationToken);
-            if (files == null)
-            {
-                OnNotifyProgress("Nothing new to Ingest so skipping");
-                return;
-            }
+            onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
+            return;
+        }
 
-            await IngestAsync(dataSource, files, cancellationToken);
-        }
-        finally
-        {
-            gitHubFilesQuery.NotifyProgress -= OnNotifyProgress;
-        }
+        await IngestAsync(dataSource, files, onProgressNotification, cancellationToken);
     }
 
-    private async Task IngestAsync(CSharpDataSource dataSource, FileContent.Models.FileContent[] files, CancellationToken cancellationToken = default)
+    private async Task IngestAsync(CSharpDataSource dataSource, FileContent.Models.FileContent[] files, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         List<CSharpChunk> codeEntities = [];
 
@@ -105,7 +91,7 @@ public class CSharpDataSourceCommand(
             codeEntities.AddRange(entitiesForFile);
         }
 
-        OnNotifyProgress($"{files.Length} Files was transformed into {codeEntities.Count} Code Entities for Vector Import. Preparing Embedding step...");
+        onProgressNotification?.Invoke(ProgressNotification.Create($"{files.Length} Files was transformed into {codeEntities.Count} Code Entities for Vector Import. Preparing Embedding step..."));
 
         Func<CSharpChunk, string>? cSharpContentFormatBuilder = dataSource.CSharpContentFormatBuilder;
         if (cSharpContentFormatBuilder == null)
@@ -164,7 +150,7 @@ public class CSharpDataSourceCommand(
             {
                 counter++;
 
-                OnNotifyProgress("Embedding Data", counter, codeEntities.Count);
+                onProgressNotification?.Invoke(ProgressNotification.Create("Embedding Data", counter, codeEntities.Count));
 
                 string content = cSharpContentFormatBuilder.Invoke(codeEntity);
 
@@ -202,11 +188,11 @@ public class CSharpDataSourceCommand(
             var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
             if (idsToDelete.Count != 0)
             {
-                OnNotifyProgress($"Removing {idsToDelete.Count} entities that are no longer in source...");
+                onProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source..."));
                 await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
             }
 
-            OnNotifyProgress("Done");
+            onProgressNotification?.Invoke(ProgressNotification.Create("Done"));
         }
     }
 

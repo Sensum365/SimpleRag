@@ -45,4 +45,17 @@ public record ProgressNotification(DateTimeOffset Timestamp, string Message, int
             return $"{Message}";
         }
     }
+
+    /// <summary>
+    /// Create a simple Notification
+    /// </summary>
+    /// <param name="message">The Message</param>
+    /// <param name="current">Current</param>
+    /// <param name="total">Total</param>
+    /// <param name="details">Details</param>
+    /// <returns>Notification</returns>
+    public static ProgressNotification Create(string message, int current = 0, int total = 0, string? details = null)
+    {
+        return new ProgressNotification(DateTimeOffset.UtcNow, message, current, total, details);
+    }
 }
