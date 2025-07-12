@@ -1,5 +1,8 @@
 # Changelog: SimpleRag
 
+## Version 0.0.1-preview9 (11th of July 2025)
+- Moved LastCommitTimestamp back out on the source itself (wrong to have it in the sub-object)
+
 ## Version 0.0.1-preview8 (11th of July 2025)
 - **WARNING: Quite a few breaking changes in this version to streamline and prepare for first non-preview**
 - Reintroduce this changelog for the previews (People need to know what is changing!)

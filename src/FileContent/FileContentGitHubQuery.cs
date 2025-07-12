@@ -31,7 +31,7 @@ public class FileContentGitHubQuery(GitHubQuery gitHubQuery) : FileContentQuery
 
         var commit = await gitHubQuery.GetLatestCommitAsync(gitHubClient, source.GitHubRepository);
         cancellationToken.ThrowIfCancellationRequested();
-        if (source.GitHubRepository.LastCommitTimestamp.HasValue && commit.Committer.Date <= source.GitHubRepository.LastCommitTimestamp.Value)
+        if (source.LastCommitTimestamp.HasValue && commit.Committer.Date <= source.LastCommitTimestamp.Value)
         {
             onProgressNotification?.Invoke(ProgressNotification.Create("No new Commits detected in the repo so skipping retrieval"));
             return null;

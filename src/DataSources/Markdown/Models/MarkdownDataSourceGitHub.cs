@@ -13,6 +13,10 @@ public class MarkdownDataSourceGitHub : MarkdownDataSource
     /// </summary>
     public required GitHubRepository GitHubRepository { get; init; }
 
+    /// <summary>
+    /// Gets or sets the timestamp of the last commit processed.
+    /// </summary>
+    public DateTimeOffset? LastCommitTimestamp { get; init; }
 
     /// <summary>
     /// Converts this instance to a <see cref="FileContentSourceGitHub"/>.
@@ -24,6 +28,7 @@ public class MarkdownDataSourceGitHub : MarkdownDataSource
         {
             FileIgnorePatterns = FileIgnorePatterns,
             GitHubRepository = GitHubRepository,
+            LastCommitTimestamp = LastCommitTimestamp,
             Path = Path,
             Recursive = Recursive
         };

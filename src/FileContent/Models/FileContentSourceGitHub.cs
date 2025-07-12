@@ -11,4 +11,9 @@ public class FileContentSourceGitHub : FileContentSource
     /// Information about the GitHubRepo
     /// </summary>
     public required GitHubRepository GitHubRepository { get; init; }
+
+    /// <summary>
+    /// Gets or sets the timestamp of the last commit processed.
+    /// </summary>
+    public required DateTimeOffset? LastCommitTimestamp { get; init; }
 }
