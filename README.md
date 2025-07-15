@@ -44,37 +44,39 @@ public class IngestionExample(Ingestion ingestion)
 {
     public async Task Sync()
     {
-        string gitHubOwner = "rwjdk";
-        string gitHubRepo = "TrelloDotNet";
+        DataSourceProviderGitHub provider = new()
+        {
+            GitHubRepository = new()
+            {
+                Owner = "rwjdk",
+                Name = "TrelloDotNet"
+            }
+        };
 
         await ingestion.IngestAsync(
         [
-            new CSharpDataSourceGitHub
+            new CSharpDataSource
             {
-                CollectionId = Constants.CollectionId,
-                Id = Constants.SourceIdCode,
+                CollectionId = VectorStoreIds.CollectionId,
+                Id = VectorStoreIds.SourceIdCode,
                 Recursive = true,
                 Path = "src",
                 FileIgnorePatterns = "TrelloDotNet.Tests",
-                GitHubOwner = gitHubOwner,
-                GitHubRepo = gitHubRepo,
+                Provider = provider
             },
-            new MarkdownDataSourceGitHub
+            new MarkdownDataSource
             {
-                CollectionId = Constants.CollectionId,
-                Id = Constants.SourceIdMarkdownInCode,
+                CollectionId = VectorStoreIds.CollectionId,
+                Id = VectorStoreIds.SourceIdMarkdownInCode,
                 Recursive = true,
                 Path = "/",
-                GitHubOwner = gitHubOwner,
-                GitHubRepo = gitHubRepo,
+                Provider = provider,
                 LevelsToChunk = 3,
             }
-        ], onProgressNotification: NotifyProgress);
-    }
-
-    private void NotifyProgress(ProgressNotification obj)
-    {
-        Console.WriteLine(obj.GetFormattedMessageWithDetails());
+        ], new IngestionOptions
+        {
+            OnProgressNotification = notification => Console.WriteLine(notification.GetFormattedMessageWithDetails()),
+        }, cancellationToken);
     }
 }
 ```
@@ -89,8 +91,9 @@ public class SearchExample(Search search)
         {
             SearchQuery = searchQuery,
             NumberOfRecordsBack = 10,
-            Filter = entity => entity.SourceCollectionId == Constants.CollectionId
+            Filter = entity => entity.SourceCollectionId == VectorStoreIds.CollectionId
         });
+        
         return searchResult.GetAsStringResult();
     }
 }
