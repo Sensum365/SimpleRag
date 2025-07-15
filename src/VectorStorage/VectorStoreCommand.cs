@@ -1,7 +1,8 @@
-﻿using System.Linq.Expressions;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Microsoft.Extensions.VectorData;
 using SimpleRag.VectorStorage.Models;
+using System.Linq.Expressions;
+using SimpleRag.DataSources;
 
 namespace SimpleRag.VectorStorage;
 
@@ -9,7 +10,7 @@ namespace SimpleRag.VectorStorage;
 /// Provides commands for modifying the vector store.
 /// </summary>
 [PublicAPI]
-public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration) : IVectorStoreCommand
+public class VectorStoreCommand(VectorStore vectorStore, IVectorStoreQuery vectorStoreQuery, VectorStoreConfiguration vectorStoreConfiguration) : IVectorStoreCommand
 {
     private bool _creationEnsured;
 
@@ -86,5 +87,46 @@ public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguratio
     {
         var collection = await GetCollectionAndEnsureItExist(cancellationToken);
         await collection.DeleteAsync(idsToDelete, cancellationToken);
+    }
+
+    /// <summary>
+    /// Sync a new set of VectorEntities with the VectorStore (New/Updated will be Upserted, Unchanged will be skipped and Existing not in the collection will be deleted)
+    /// </summary>
+    /// <param name="dataSource">The Datasource the entities represent</param>
+    /// <param name="vectorEntities">The new set of Entities.</param>
+    /// <param name="onProgressNotification">Action to Report notifications</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    public async Task SyncAsync(IDataSource dataSource, IEnumerable<VectorEntity> vectorEntities, Action<Notification>? onProgressNotification = null, CancellationToken cancellationToken = default)
+    {
+        VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == dataSource.CollectionId && x.SourceId == dataSource.Id, cancellationToken);
+
+        int counter = 0;
+        List<string> idsToKeep = [];
+
+        VectorEntity[] entities = vectorEntities.ToArray();
+        foreach (var entity in entities)
+        {
+            counter++;
+
+            onProgressNotification?.Invoke(Notification.Create("Embedding Data", counter, entities.Length));
+
+            string contentCompareKey = entity.GetContentCompareKey();
+            var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == contentCompareKey);
+            if (existing == null)
+            {
+                await RetryHelper.ExecuteWithRetryAsync(async () => { await UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
+            }
+            else
+            {
+                idsToKeep.Add(existing.Id);
+            }
+        }
+
+        var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
+        if (idsToDelete.Count != 0)
+        {
+            onProgressNotification?.Invoke(Notification.Create($"Removing {idsToDelete.Count} entities that are no longer in source..."));
+            await DeleteAsync(idsToDelete, cancellationToken);
+        }
     }
 }

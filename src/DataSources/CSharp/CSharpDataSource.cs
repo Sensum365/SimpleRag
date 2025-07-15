@@ -12,16 +12,14 @@ namespace SimpleRag.DataSources.CSharp;
 public class CSharpDataSource : DataSourceFileBased
 {
     private readonly ICSharpChunker _chunker;
-    private readonly IVectorStoreQuery _vectorStoreQuery;
     private readonly IVectorStoreCommand _vectorStoreCommand;
 
     /// <summary>
     /// Represent a C# Based Datasource
     /// </summary>
-    public CSharpDataSource(ICSharpChunker chunker, IVectorStoreQuery vectorStoreQuery, IVectorStoreCommand vectorStoreCommand)
+    public CSharpDataSource(ICSharpChunker chunker, IVectorStoreCommand vectorStoreCommand)
     {
         _chunker = chunker;
-        _vectorStoreQuery = vectorStoreQuery;
         _vectorStoreCommand = vectorStoreCommand;
     }
 
@@ -31,7 +29,6 @@ public class CSharpDataSource : DataSourceFileBased
     public CSharpDataSource(IServiceProvider serviceProvider)
     {
         _chunker = serviceProvider.GetRequiredService<ICSharpChunker>();
-        _vectorStoreQuery = serviceProvider.GetRequiredService<IVectorStoreQuery>();
         _vectorStoreCommand = serviceProvider.GetRequiredService<IVectorStoreCommand>();
     }
 
@@ -129,57 +126,26 @@ public class CSharpDataSource : DataSourceFileBased
                 }
             }
 
-            VectorEntity[] existingData = await _vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == CollectionId && x.SourceId == Id, cancellationToken);
-
-            int counter = 0;
-            List<string> idsToKeep = [];
-
-            foreach (CSharpChunk codeEntity in codeEntities)
+            IEnumerable<VectorEntity> vectorEntities = codeEntities.Select(x => new VectorEntity
             {
-                counter++;
+                Id = Guid.NewGuid().ToString(),
+                SourceId = Id,
+                ContentId = null,
+                SourceCollectionId = CollectionId,
+                SourceKind = SourceKind,
+                SourcePath = x.SourcePath,
+                ContentKind = x.KindAsString,
+                ContentParent = x.Parent,
+                ContentParentKind = x.ParentKindAsString,
+                ContentName = x.Name,
+                ContentNamespace = x.Namespace,
+                ContentDependencies = x.Dependencies.Count == 0 ? null : string.Join(";", x.Dependencies),
+                ContentReferences = x.References is { Count: 0 } ? null : string.Join(";", x.References?.Select(x => x.Path) ?? []),
+                ContentDescription = x.XmlSummary,
+                Content = cSharpContentFormatBuilder.Invoke(x),
+            });
 
-                ingestionOptions?.ReportProgress("Embedding Data", counter, codeEntities.Count);
-
-                string content = cSharpContentFormatBuilder.Invoke(codeEntity);
-
-                VectorEntity entity = new()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    SourceId = Id,
-                    ContentId = null,
-                    SourceCollectionId = CollectionId,
-                    SourceKind = SourceKind,
-                    SourcePath = codeEntity.SourcePath,
-                    ContentKind = codeEntity.KindAsString,
-                    ContentParent = codeEntity.Parent,
-                    ContentParentKind = codeEntity.ParentKindAsString,
-                    ContentName = codeEntity.Name,
-                    ContentNamespace = codeEntity.Namespace,
-                    ContentDependencies = codeEntity.Dependencies.Count == 0 ? null : string.Join(";", codeEntity.Dependencies),
-                    ContentReferences = codeEntity.References is { Count: 0 } ? null : string.Join(";", codeEntity.References?.Select(x => x.Path) ?? []),
-                    ContentDescription = codeEntity.XmlSummary,
-                    Content = content,
-                };
-
-                string contentCompareKey = entity.GetContentCompareKey();
-                var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == contentCompareKey);
-                if (existing == null)
-                {
-                    await RetryHelper.ExecuteWithRetryAsync(async () => { await _vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
-                }
-                else
-                {
-                    idsToKeep.Add(existing.Id);
-                }
-            }
-
-            var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
-            if (idsToDelete.Count != 0)
-            {
-                ingestionOptions?.ReportProgress($"Removing {idsToDelete.Count} entities that are no longer in source...");
-                await _vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
-            }
-
+            await _vectorStoreCommand.SyncAsync(this, vectorEntities, ingestionOptions?.OnProgressNotification, cancellationToken);
             ingestionOptions?.ReportProgress("Done");
         }
     }

@@ -1,5 +1,10 @@
 # Changelog: SimpleRag
 
+## Unreleased
+- Added VectorStoreCommand.SyncAsync for Easier custom implementations
+
+---
+
 ## Version 0.0.1-preview11 (15th of July 2025)
 **WARNING: Tons of breaking changes to allow for custom implementations [Sorry for all the constant changes, but things are moving in the right direction now]**
 - Everything now use interfaces

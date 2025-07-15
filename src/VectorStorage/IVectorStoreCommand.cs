@@ -1,4 +1,5 @@
-﻿using SimpleRag.VectorStorage.Models;
+﻿using SimpleRag.DataSources;
+using SimpleRag.VectorStorage.Models;
 using System.Linq.Expressions;
 
 namespace SimpleRag.VectorStorage;
@@ -26,4 +27,13 @@ public interface IVectorStoreCommand
     /// <param name="cancellationToken">CancellationToken</param>
     /// </summary>
     Task DeleteAsync(IEnumerable<string> idsToDelete, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sync a new set of VectorEntities with the VectorStore (New/Updated will be Upserted, Unchanged will be skipped and Existing not in the collection will be deleted)
+    /// </summary>
+    /// <param name="dataSource">The Datasource the entities represent</param>
+    /// <param name="vectorEntities">The new set of Entities.</param>
+    /// <param name="onProgressNotification">Action to Report notifications</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    Task SyncAsync(IDataSource dataSource, IEnumerable<VectorEntity> vectorEntities, Action<Notification>? onProgressNotification = null, CancellationToken cancellationToken = default);
 }

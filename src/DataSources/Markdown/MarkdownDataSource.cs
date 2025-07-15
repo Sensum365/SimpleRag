@@ -13,16 +13,14 @@ namespace SimpleRag.DataSources.Markdown;
 public class MarkdownDataSource : DataSourceFileBased
 {
     private readonly IMarkdownChunker _chunker;
-    private readonly IVectorStoreQuery _vectorStoreQuery;
     private readonly IVectorStoreCommand _vectorStoreCommand;
 
     /// <summary>
     /// Class for markdown sources.
     /// </summary>
-    public MarkdownDataSource(IMarkdownChunker chunker, IVectorStoreQuery vectorStoreQuery, IVectorStoreCommand vectorStoreCommand)
+    public MarkdownDataSource(IMarkdownChunker chunker, IVectorStoreCommand vectorStoreCommand)
     {
         _chunker = chunker;
-        _vectorStoreQuery = vectorStoreQuery;
         _vectorStoreCommand = vectorStoreCommand;
     }
 
@@ -32,7 +30,6 @@ public class MarkdownDataSource : DataSourceFileBased
     public MarkdownDataSource(IServiceProvider serviceProvider)
     {
         _chunker = serviceProvider.GetRequiredService<IMarkdownChunker>();
-        _vectorStoreQuery = serviceProvider.GetRequiredService<IVectorStoreQuery>();
         _vectorStoreCommand = serviceProvider.GetRequiredService<IVectorStoreCommand>();
     }
 
@@ -152,33 +149,7 @@ public class MarkdownDataSource : DataSourceFileBased
             }
         }
 
-        var existingData = await _vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == CollectionId && x.SourceId == Id, cancellationToken);
-
-        int counter = 0;
-        List<string> idsToKeep = [];
-        foreach (var entity in entries)
-        {
-            counter++;
-
-            ingestionOptions?.ReportProgress("Embedding Data", counter, entries.Count);
-            var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == entity.GetContentCompareKey());
-            if (existing == null)
-            {
-                await RetryHelper.ExecuteWithRetryAsync(async () => { await _vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
-            }
-            else
-            {
-                idsToKeep.Add(existing.Id);
-            }
-        }
-
-        var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
-        if (idsToDelete.Count != 0)
-        {
-            ingestionOptions?.ReportProgress($"Removing {idsToDelete.Count} entities that are no longer in source");
-            await _vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
-        }
-
+        await _vectorStoreCommand.SyncAsync(this, entries, ingestionOptions?.OnProgressNotification, cancellationToken);
         ingestionOptions?.ReportProgress("Done");
     }
 }
