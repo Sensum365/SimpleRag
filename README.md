@@ -40,11 +40,11 @@ builder.Services.AddSimpleRagWithGitHubIntegration(new VectorStoreConfiguration(
 
 ### Step 3: Ingest Data into your VectorStore (in this sample the [TrelloDotNet](https://github.com/rwjdk/TrelloDotNet) open-source repo)
 ```csharp
-public class IngestionExample(Ingestion ingestion)
+public class IngestionExample(Ingestion ingestion, IServiceProvider serviceProvider)
 {
     public async Task Sync()
     {
-        DataSourceProviderGitHub provider = new()
+        DataSourceProviderGitHub filesProvider = new(serviceProvider)
         {
             GitHubRepository = new()
             {
@@ -55,22 +55,22 @@ public class IngestionExample(Ingestion ingestion)
 
         await ingestion.IngestAsync(
         [
-            new CSharpDataSource
+            new CSharpDataSource(serviceProvider)
             {
                 CollectionId = VectorStoreIds.CollectionId,
                 Id = VectorStoreIds.SourceIdCode,
                 Recursive = true,
                 Path = "src",
                 FileIgnorePatterns = "TrelloDotNet.Tests",
-                Provider = provider
+                FilesProvider = filesProvider
             },
-            new MarkdownDataSource
+            new MarkdownDataSource(serviceProvider)
             {
                 CollectionId = VectorStoreIds.CollectionId,
                 Id = VectorStoreIds.SourceIdMarkdownInCode,
                 Recursive = true,
                 Path = "/",
-                Provider = provider,
+                FilesProvider = filesProvider
                 LevelsToChunk = 3,
             }
         ], new IngestionOptions
