@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
-using SimpleRag.DataSourceProviders;
 
-namespace SimpleRag.FileContent.Models;
+namespace SimpleRag.DataProviders.Models;
 
 /// <summary>
 /// Class describing a source of file content.
@@ -16,11 +15,6 @@ public class FileContentSource
 
     /// <summary>Gets or sets patterns for files to ignore.</summary>
     public required string? FileIgnorePatterns { get; init; }
-
-    /// <summary>
-    /// The provider of the source (Local, GitHub, etc.)
-    /// </summary>
-    public required IDataSourceProvider Provider { get; init; }
 
     /// <summary>
     /// The File-extension-type to get content for

@@ -11,7 +11,7 @@ namespace SimpleRag.DataSources.CSharp
     /// Breaks C# code into smaller chunks for ingestion.
     /// </summary>
     [PublicAPI]
-    public class CSharpChunker
+    public class CSharpChunker : ICSharpChunker
     {
         /// <summary>
         /// Parses the provided code and returns the discovered code entities.

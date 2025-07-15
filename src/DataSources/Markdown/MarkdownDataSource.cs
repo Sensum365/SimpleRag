@@ -1,39 +1,52 @@
-using JetBrains.Annotations;
-using SimpleRag.DataSources.Markdown.Models;
-using SimpleRag.FileContent;
+﻿using SimpleRag.DataSources.Markdown.Models;
+using SimpleRag.Helpers;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 using System.Text.RegularExpressions;
-using SimpleRag.Helpers;
-using SimpleRag.Models;
+using SimpleRag.DataProviders.Models;
 
 namespace SimpleRag.DataSources.Markdown;
 
 /// <summary>
-/// Command used for ingesting markdown based data sources.
+/// Class for markdown sources.
 /// </summary>
-[PublicAPI]
-public class MarkdownDataSourceCommand(
-    MarkdownChunker chunker,
-    VectorStoreQuery vectorStoreQuery,
-    VectorStoreCommand vectorStoreCommand)
+public class MarkdownDataSource(IMarkdownChunker chunker, IVectorStoreQuery vectorStoreQuery, IVectorStoreCommand vectorStoreCommand) : FileBasedDataSource
 {
     /// <summary>The source kind handled by this command.</summary>
     public const string SourceKind = "Markdown";
 
+    /// <summary>Gets or sets a value indicating whether HTML comments should be ignored.</summary>
+    public bool IgnoreCommentedOutContent { get; init; } = true;
+
+    /// <summary>Gets or sets a value indicating whether image references should be ignored.</summary>
+    public bool IgnoreImages { get; init; } = true;
+
+    /// <summary>Gets or sets the line count threshold for chunking files.</summary>
+    public int? OnlyChunkIfMoreThanThisNumberOfLines { get; init; } = 25;
+
+    /// <summary>Gets or sets the heading levels to chunk at.</summary>
+    public int LevelsToChunk { get; init; } = 2;
+
+    /// <summary>Gets or sets patterns for lines to ignore when chunking.</summary>
+    public string? ChunkLineIgnorePatterns { get; init; }
+
+    /// <summary>Gets or sets the minimum size of a chunk in characters.</summary>
+    public int? IgnoreChunkIfLessThanThisAmountOfChars { get; init; } = 25;
+
+    //todo support content format builder
+
     /// <summary>
     /// Ingest a Markdown Source
     /// </summary>
-    /// <param name="dataSource">The Datasource</param>
-    /// <param name="onProgressNotification">Action to execute on progress notification</param>
+    /// <param name="ingestionOptions"></param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public async Task IngestAsync(MarkdownDataSource dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
+    public override async Task IngestAsync(IngestionOptions? ingestionOptions = null, CancellationToken cancellationToken = default)
     {
-        FileContent.Models.FileContent[]? files = await dataSource.Provider.GetFileContent(dataSource.AsFileContentSource("md"), onProgressNotification, cancellationToken);
+        FileContent[]? files = await FilesProvider.GetFileContent(AsFileContentSource("md"), ingestionOptions?.OnProgressNotification, cancellationToken);
         if (files == null)
         {
-            onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
+            ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
             return;
         }
 
@@ -42,20 +55,20 @@ public class MarkdownDataSourceCommand(
         foreach (var file in files)
         {
             var numberOfLine = file.Content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
-            if (dataSource.IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > dataSource.IgnoreFileIfMoreThanThisNumberOfLines)
+            if (IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;
             }
 
-            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.Path);
+            string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(file.Path);
             var content = file.Content;
-            if (dataSource.IgnoreCommentedOutContent)
+            if (IgnoreCommentedOutContent)
             {
                 //Remove Any Commented out parts
                 content = Regex.Replace(content, "<!--[\\s\\S]*?-->", string.Empty);
             }
 
-            if (dataSource.IgnoreImages)
+            if (IgnoreImages)
             {
                 //Remove Any Images
                 content = Regex.Replace(content, @"!\[.*?\]\(.*?\)", string.Empty);
@@ -65,13 +78,13 @@ public class MarkdownDataSourceCommand(
             content = Regex.Replace(content, @"\r\n[\r\n]+|\r[\r]+|\n[\n]+", newLine + newLine);
             content = content.Trim();
 
-            if (numberOfLine > dataSource.OnlyChunkIfMoreThanThisNumberOfLines)
+            if (numberOfLine > OnlyChunkIfMoreThanThisNumberOfLines)
             {
                 //Chunk larger files
                 MarkdownChunk[] chunks = chunker.GetChunks(content,
-                    dataSource.LevelsToChunk,
-                    dataSource.ChunkLineIgnorePatterns,
-                    dataSource.IgnoreChunkIfLessThanThisAmountOfChars);
+                    LevelsToChunk,
+                    ChunkLineIgnorePatterns,
+                    IgnoreChunkIfLessThanThisAmountOfChars);
 
                 entries.AddRange(chunks.Select(x => new VectorEntity
                 {
@@ -80,9 +93,9 @@ public class MarkdownDataSourceCommand(
                     Content = $"{fileNameWithoutExtension} - {x.Name}{newLine}---{newLine}{x.Content}", //todo - support Content format builder
                     ContentId = x.ChunkId,
                     ContentName = x.Name,
-                    SourceId = dataSource.Id,
+                    SourceId = Id,
                     SourceKind = SourceKind,
-                    SourceCollectionId = dataSource.CollectionId,
+                    SourceCollectionId = CollectionId,
                     SourcePath = file.PathWithoutRoot,
                     ContentParent = null,
                     ContentParentKind = null,
@@ -97,9 +110,9 @@ public class MarkdownDataSourceCommand(
                 entries.Add(new VectorEntity
                 {
                     Id = Guid.NewGuid().ToString(),
-                    SourceId = dataSource.Id,
+                    SourceId = Id,
                     SourceKind = SourceKind,
-                    SourceCollectionId = dataSource.CollectionId,
+                    SourceCollectionId = CollectionId,
                     SourcePath = file.PathWithoutRoot,
                     ContentKind = "Markdown",
                     Content = $"{fileNameWithoutExtension}{newLine}---{newLine}{content}", //todo - support Content format builder
@@ -115,7 +128,7 @@ public class MarkdownDataSourceCommand(
             }
         }
 
-        var existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == dataSource.CollectionId && x.SourceId == dataSource.Id, cancellationToken);
+        var existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == CollectionId && x.SourceId == Id, cancellationToken);
 
         int counter = 0;
         List<string> idsToKeep = [];
@@ -123,7 +136,7 @@ public class MarkdownDataSourceCommand(
         {
             counter++;
 
-            onProgressNotification?.Invoke(ProgressNotification.Create("Embedding Data", counter, entries.Count));
+            ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create("Embedding Data", counter, entries.Count));
             var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == entity.GetContentCompareKey());
             if (existing == null)
             {
@@ -138,10 +151,10 @@ public class MarkdownDataSourceCommand(
         var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
         if (idsToDelete.Count != 0)
         {
-            onProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source"));
+            ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source"));
             await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
         }
 
-        onProgressNotification?.Invoke(ProgressNotification.Create("Done"));
+        ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create("Done"));
     }
 }

@@ -9,7 +9,7 @@ namespace SimpleRag.VectorStorage;
 /// Provides commands for modifying the vector store.
 /// </summary>
 [PublicAPI]
-public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration)
+public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration) : IVectorStoreCommand
 {
     private bool _creationEnsured;
 
@@ -60,6 +60,7 @@ public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguratio
         }
     }
 
+
     /// <summary>
     /// Deletes all entities matching the filter.
     /// </summary>
@@ -79,11 +80,11 @@ public class VectorStoreCommand(VectorStore vectorStore, VectorStoreConfiguratio
     }
 
     /// <summary>
-    /// Deletes the entities with the specified keys.
+    /// Deletes all entities matching the filter.
     /// </summary>
-    public async Task DeleteAsync(IEnumerable<string> keysToDelete, CancellationToken cancellationToken = default)
+    public async Task DeleteAsync(IEnumerable<string> idsToDelete, CancellationToken cancellationToken = default)
     {
         var collection = await GetCollectionAndEnsureItExist(cancellationToken);
-        await collection.DeleteAsync(keysToDelete, cancellationToken);
+        await collection.DeleteAsync(idsToDelete, cancellationToken);
     }
 }

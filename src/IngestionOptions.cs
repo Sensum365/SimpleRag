@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using SimpleRag.Models;
 
 namespace SimpleRag;
 

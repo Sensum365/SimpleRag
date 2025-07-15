@@ -1,7 +1,5 @@
-using JetBrains.Annotations;
-using SimpleRag.DataSources.CSharp.Models;
+﻿using SimpleRag.DataSources.CSharp.Models;
 using SimpleRag.Helpers;
-using SimpleRag.Models;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 using System.Text;
@@ -9,17 +7,9 @@ using System.Text;
 namespace SimpleRag.DataSources.CSharp;
 
 /// <summary>
-/// Command class for ingesting and processing C# data sources, supporting both local and GitHub-based sources.
-/// Handles chunking, formatting, and storing code entities as vector embeddings for semantic search and retrieval.
+/// Represent a C# Based Datasource
 /// </summary>
-/// <param name="chunker">The CSharpChunker used to extract code entities from C# source files.</param>
-/// <param name="vectorStoreCommand">The command for upserting and deleting vector entities in the vector store.</param>
-/// <param name="vectorStoreQuery">The query service for retrieving existing vector entities from the vector store.</param>
-[PublicAPI]
-public class CSharpDataSourceCommand(
-    CSharpChunker chunker,
-    VectorStoreCommand vectorStoreCommand,
-    VectorStoreQuery vectorStoreQuery)
+public class CSharpDataSource(ICSharpChunker chunker, IVectorStoreQuery vectorStoreQuery, IVectorStoreCommand vectorStoreCommand) : FileBasedDataSource
 {
     /// <summary>
     /// The sourceKind this command ingest
@@ -27,27 +17,30 @@ public class CSharpDataSourceCommand(
     public const string SourceKind = "CSharp";
 
     /// <summary>
+    /// Builder of the desired format of the Content to be vectorized or leave null to use the default provided format
+    /// </summary>
+    public Func<CSharpChunk, string>? CSharpContentFormatBuilder { get; set; }
+
+    /// <summary>
     /// Ingest a C# Source
     /// </summary>
-    /// <param name="dataSource">The Datasource</param>
-    /// <param name="onProgressNotification">Action to execute on progress notification</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public async Task IngestAsync(CSharpDataSource dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
+    public override async Task IngestAsync(IngestionOptions ingestionOptions = null, CancellationToken cancellationToken = default)
     {
-        FileContent.Models.FileContent[]? files = await dataSource.Provider.GetFileContent(dataSource.AsFileContentSource("cs"), onProgressNotification, cancellationToken);
+        DataProviders.Models.FileContent[]? files = await FilesProvider.GetFileContent(AsFileContentSource("cs"), ingestionOptions.OnProgressNotification, cancellationToken);
         if (files == null)
         {
-            onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
+            ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
             return;
         }
 
         List<CSharpChunk> codeEntities = [];
 
-        foreach (FileContent.Models.FileContent file in files)
+        foreach (DataProviders.Models.FileContent file in files)
         {
             var numberOfLine = file.Content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
-            if (dataSource.IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > dataSource.IgnoreFileIfMoreThanThisNumberOfLines)
+            if (IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;
             }
@@ -61,9 +54,9 @@ public class CSharpDataSourceCommand(
             codeEntities.AddRange(entitiesForFile);
         }
 
-        onProgressNotification?.Invoke(ProgressNotification.Create($"{files.Length} Files was transformed into {codeEntities.Count} Code Entities for Vector Import. Preparing Embedding step..."));
+        ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create($"{files.Length} Files was transformed into {codeEntities.Count} Code Entities for Vector Import. Preparing Embedding step..."));
 
-        Func<CSharpChunk, string>? cSharpContentFormatBuilder = dataSource.CSharpContentFormatBuilder;
+        Func<CSharpChunk, string>? cSharpContentFormatBuilder = CSharpContentFormatBuilder;
         if (cSharpContentFormatBuilder == null)
         {
             cSharpContentFormatBuilder = chunk =>
@@ -111,7 +104,7 @@ public class CSharpDataSourceCommand(
                 }
             }
 
-            VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == dataSource.CollectionId && x.SourceId == dataSource.Id, cancellationToken);
+            VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == CollectionId && x.SourceId == Id, cancellationToken);
 
             int counter = 0;
             List<string> idsToKeep = [];
@@ -120,16 +113,16 @@ public class CSharpDataSourceCommand(
             {
                 counter++;
 
-                onProgressNotification?.Invoke(ProgressNotification.Create("Embedding Data", counter, codeEntities.Count));
+                ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create("Embedding Data", counter, codeEntities.Count));
 
                 string content = cSharpContentFormatBuilder.Invoke(codeEntity);
 
                 VectorEntity entity = new()
                 {
                     Id = Guid.NewGuid().ToString(),
-                    SourceId = dataSource.Id,
+                    SourceId = Id,
                     ContentId = null,
-                    SourceCollectionId = dataSource.CollectionId,
+                    SourceCollectionId = CollectionId,
                     SourceKind = SourceKind,
                     SourcePath = codeEntity.SourcePath,
                     ContentKind = codeEntity.KindAsString,
@@ -158,11 +151,11 @@ public class CSharpDataSourceCommand(
             var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
             if (idsToDelete.Count != 0)
             {
-                onProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source..."));
+                ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source..."));
                 await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
             }
 
-            onProgressNotification?.Invoke(ProgressNotification.Create("Done"));
+            ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create("Done"));
         }
     }
 }

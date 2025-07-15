@@ -8,7 +8,7 @@ namespace SimpleRag;
 /// Performs search operations against the vector store.
 /// </summary>
 [PublicAPI]
-public class Search(VectorStoreQuery vectorStoreQuery)
+public class Search(IVectorStoreQuery vectorStoreQuery)
 {
     /// <summary>
     /// Executes a search using the provided options.

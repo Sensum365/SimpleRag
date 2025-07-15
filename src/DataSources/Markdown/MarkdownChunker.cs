@@ -8,7 +8,7 @@ namespace SimpleRag.DataSources.Markdown
     /// Splits markdown content into smaller chunks.
     /// </summary>
     [PublicAPI]
-    public class MarkdownChunker
+    public class MarkdownChunker : IMarkdownChunker
     {
         /// <summary>
         /// Breaks the specified markdown content into chunks.

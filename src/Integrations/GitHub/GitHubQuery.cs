@@ -9,7 +9,7 @@ namespace SimpleRag.Integrations.GitHub;
 /// Helper methods for interacting with the GitHub API.
 /// </summary>
 [PublicAPI]
-public class GitHubQuery(GitHubConnection connection)
+public class GitHubQuery(GitHubConnection connection) : IGitHubQuery
 {
     /// <summary>Gets a value indicating whether a GitHub token is configured.</summary>
     public bool IsGitHubTokenProvided => !string.IsNullOrWhiteSpace(connection.GitHubToken);

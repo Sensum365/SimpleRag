@@ -1,15 +1,13 @@
 ﻿using Octokit;
-using SimpleRag.FileContent;
-using SimpleRag.FileContent.Models;
+using SimpleRag.DataProviders.Models;
 using SimpleRag.Integrations.GitHub;
-using SimpleRag.Models;
 
-namespace SimpleRag.DataSourceProviders;
+namespace SimpleRag.DataProviders;
 
 /// <summary>
 /// A SourceProvider representing files in a GitHub Repository
 /// </summary>
-public class DataSourceProviderGitHub(GitHubQuery gitHubQuery) : IDataSourceProvider
+public class GitHubFilesDataProvider(IGitHubQuery gitHubQuery) : IFileContentProvider
 {
     /// <summary>
     /// Information about the GitHubRepo
@@ -21,19 +19,19 @@ public class DataSourceProviderGitHub(GitHubQuery gitHubQuery) : IDataSourceProv
     /// </summary>
     public DateTimeOffset? LastCommitTimestamp { get; init; }
 
-    public async Task<FileContent.Models.FileContent[]?> GetFileContent(FileContentSource source, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
+    public async Task<FileContent[]?> GetFileContent(FileContentSource source, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(source.Path))
         {
-            throw new DataSourceProviderException("Path is not defined");
+            throw new DataProviderException("Path is not defined");
         }
 
         if (GitHubRepository == null || string.IsNullOrWhiteSpace(GitHubRepository.Owner) || string.IsNullOrWhiteSpace(GitHubRepository.Name))
         {
-            throw new DataSourceProviderException("GitHub Owner and Repo is not defined");
+            throw new DataProviderException("GitHub Owner and Repo is not defined");
         }
 
-        List<FileContent.Models.FileContent> result = [];
+        List<FileContent> result = [];
 
         onProgressNotification?.Invoke(ProgressNotification.Create("Exploring GitHub"));
         var gitHubClient = gitHubQuery.GetGitHubClient();
@@ -91,7 +89,7 @@ public class DataSourceProviderGitHub(GitHubQuery gitHubQuery) : IDataSourceProv
                 continue;
             }
 
-            result.Add(new FileContent.Models.FileContent(path, content, pathWithoutRoot));
+            result.Add(new FileContent(path, content, pathWithoutRoot));
         }
 
         if (ignoredFiles.Count > 0)

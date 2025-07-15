@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace SimpleRag.Models;
+namespace SimpleRag;
 
 /// <summary>
 /// Represents a progress notification.

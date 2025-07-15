@@ -1,12 +1,12 @@
-using SimpleRag.DataSourceProviders;
-using SimpleRag.FileContent.Models;
+using SimpleRag.DataProviders;
+using SimpleRag.DataProviders.Models;
 
-namespace SimpleRag.DataSources.Models;
+namespace SimpleRag.DataSources;
 
 /// <summary>
 /// Base class for all ingestible data sources.
 /// </summary>
-public abstract class DataSource
+public abstract class FileBasedDataSource : IDataSource
 {
     /// <summary>
     /// Gets or sets the identifier of the collection.
@@ -41,7 +41,7 @@ public abstract class DataSource
     /// <summary>
     /// The provider of the source (Local, GitHub, etc.)
     /// </summary>
-    public required IDataSourceProvider Provider { get; init; }
+    public required IFileContentProvider FilesProvider { get; init; }
 
     /// <summary>
     /// Converts this instance to a <see cref="FileContentSource"/>.
@@ -52,10 +52,11 @@ public abstract class DataSource
         return new FileContentSource
         {
             FileIgnorePatterns = FileIgnorePatterns,
-            Provider = Provider,
             Path = Path,
             Recursive = Recursive,
             FileExtensionType = fileExtensionType
         };
     }
+
+    public abstract Task IngestAsync(IngestionOptions? ingestionOptions, CancellationToken cancellationToken = default);
 }

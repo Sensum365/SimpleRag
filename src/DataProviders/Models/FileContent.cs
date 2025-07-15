@@ -1,4 +1,4 @@
-namespace SimpleRag.FileContent.Models;
+namespace SimpleRag.DataProviders.Models;
 
 /// <summary>
 /// Represents the content of a file.

@@ -1,23 +1,21 @@
-﻿using SimpleRag.FileContent;
-using SimpleRag.FileContent.Models;
-using SimpleRag.Models;
-using System.Text;
+﻿using System.Text;
+using SimpleRag.DataProviders.Models;
 
-namespace SimpleRag.DataSourceProviders;
+namespace SimpleRag.DataProviders;
 
 /// <summary>
 /// A SourceProvider representing files on a local disk
 /// </summary>
-public class DataSourceProviderLocal : IDataSourceProvider
+public class LocalFilesDataProvider : IFileContentProvider
 {
-    public async Task<FileContent.Models.FileContent[]?> GetFileContent(FileContentSource source, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
+    public async Task<FileContent[]?> GetFileContent(FileContentSource source, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(source.Path))
         {
-            throw new DataSourceProviderException("Path is not defined");
+            throw new DataProviderException("Path is not defined");
         }
 
-        List<FileContent.Models.FileContent> result = [];
+        List<FileContent> result = [];
 
         string[] files = Directory.GetFiles(source.Path, "*." + source.FileExtensionType, source.Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
         onProgressNotification?.Invoke(ProgressNotification.Create($"Found {files.Length} files"));
@@ -36,7 +34,7 @@ public class DataSourceProviderLocal : IDataSourceProvider
             onProgressNotification?.Invoke(ProgressNotification.Create("Parsing Local files from Disk", counter, files.Length));
             var pathWithoutRoot = path.Replace(source.Path, string.Empty);
             string content = await File.ReadAllTextAsync(path, Encoding.UTF8, cancellationToken);
-            result.Add(new FileContent.Models.FileContent(path, content, pathWithoutRoot));
+            result.Add(new FileContent(path, content, pathWithoutRoot));
         }
 
         if (ignoredFiles.Count > 0)

@@ -7,7 +7,7 @@ namespace SimpleRag.VectorStorage;
 /// <summary>
 /// Provides query operations against the vector store.
 /// </summary>
-public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration)
+public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration) : IVectorStoreQuery
 {
     private bool _creationEnsured;
 
