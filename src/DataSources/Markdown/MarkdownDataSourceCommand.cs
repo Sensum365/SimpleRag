@@ -1,6 +1,5 @@
 using JetBrains.Annotations;
 using SimpleRag.DataSources.Markdown.Models;
-using SimpleRag.DataSources.Models;
 using SimpleRag.FileContent;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
@@ -18,66 +17,39 @@ public class MarkdownDataSourceCommand(
     MarkdownChunker chunker,
     VectorStoreQuery vectorStoreQuery,
     VectorStoreCommand vectorStoreCommand,
-    FileContentGitHubQuery gitHubFileContentQuery,
-    FileContentLocalQuery localFileContentQuery)
+    FileContentQuery fileContentQuery) : DataSourceCommand(fileContentQuery)
 {
     /// <summary>The source kind handled by this command.</summary>
     public const string SourceKind = "Markdown";
 
     /// <summary>
-    /// Ingests a local markdown source.
+    /// Ingest a Markdown Source
     /// </summary>
-    /// <param name="dataSource">The source to ingest.</param>
-    /// <param name="onProgressNotification">Notification</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task IngestAsync(MarkdownDataSourceLocal dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
+    /// <param name="dataSource">The Datasource</param>
+    /// <param name="onProgressNotification">Action to execute on progress notification</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public async Task IngestAsync(MarkdownDataSource dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
-        Guards(dataSource);
-
-        FileContent.Models.FileContent[]? rawFiles = await localFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md", onProgressNotification, cancellationToken);
-        if (rawFiles == null)
+        FileContent.Models.FileContent[]? files = await GetFileContent(dataSource, "md", onProgressNotification, cancellationToken);
+        if (files == null)
         {
             onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
             return;
         }
 
-        await IngestAsync(dataSource, rawFiles, onProgressNotification, cancellationToken);
-    }
-
-    /// <summary>
-    /// Ingests a GitHub based markdown source.
-    /// </summary>
-    /// <param name="dataSource">The source to ingest.</param>
-    /// <param name="onProgressNotification">Notification</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task IngestAsync(MarkdownDataSourceGitHub dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
-    {
-        Guards(dataSource);
-
-        FileContent.Models.FileContent[]? rawFiles = await gitHubFileContentQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "md", onProgressNotification, cancellationToken);
-        if (rawFiles == null)
-        {
-            onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
-            return;
-        }
-
-        await IngestAsync(dataSource, rawFiles, onProgressNotification, cancellationToken);
-    }
-
-    private async Task IngestAsync(MarkdownDataSource dataSource, FileContent.Models.FileContent[] rawFiles, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
-    {
         List<VectorEntity> entries = [];
 
-        foreach (var rawFile in rawFiles)
+        foreach (var file in files)
         {
-            var numberOfLine = rawFile.Content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
+            var numberOfLine = file.Content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
             if (dataSource.IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > dataSource.IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;
             }
 
-            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(rawFile.Path);
-            var content = rawFile.Content;
+            string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(file.Path);
+            var content = file.Content;
             if (dataSource.IgnoreCommentedOutContent)
             {
                 //Remove Any Commented out parts
@@ -112,7 +84,7 @@ public class MarkdownDataSourceCommand(
                     SourceId = dataSource.Id,
                     SourceKind = SourceKind,
                     SourceCollectionId = dataSource.CollectionId,
-                    SourcePath = rawFile.PathWithoutRoot,
+                    SourcePath = file.PathWithoutRoot,
                     ContentParent = null,
                     ContentParentKind = null,
                     ContentNamespace = null,
@@ -129,7 +101,7 @@ public class MarkdownDataSourceCommand(
                     SourceId = dataSource.Id,
                     SourceKind = SourceKind,
                     SourceCollectionId = dataSource.CollectionId,
-                    SourcePath = rawFile.PathWithoutRoot,
+                    SourcePath = file.PathWithoutRoot,
                     ContentKind = "Markdown",
                     Content = $"{fileNameWithoutExtension}{newLine}---{newLine}{content}", //todo - support Content format builder
                     ContentName = fileNameWithoutExtension,
@@ -172,14 +144,5 @@ public class MarkdownDataSourceCommand(
         }
 
         onProgressNotification?.Invoke(ProgressNotification.Create("Done"));
-    }
-
-
-    private static void Guards(DataSource source)
-    {
-        if (string.IsNullOrWhiteSpace(source.Path))
-        {
-            throw new SourceException("Source Path is not defined");
-        }
     }
 }

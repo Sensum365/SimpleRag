@@ -1,4 +1,3 @@
-using System.Text;
 using JetBrains.Annotations;
 using SimpleRag.DataSources.CSharp.Models;
 using SimpleRag.DataSources.Models;
@@ -7,6 +6,7 @@ using SimpleRag.Helpers;
 using SimpleRag.Models;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
+using System.Text;
 
 namespace SimpleRag.DataSources.CSharp;
 
@@ -17,15 +17,13 @@ namespace SimpleRag.DataSources.CSharp;
 /// <param name="chunker">The CSharpChunker used to extract code entities from C# source files.</param>
 /// <param name="vectorStoreCommand">The command for upserting and deleting vector entities in the vector store.</param>
 /// <param name="vectorStoreQuery">The query service for retrieving existing vector entities from the vector store.</param>
-/// <param name="gitHubFilesQuery">The query service for retrieving C# files from GitHub sources.</param>
-/// <param name="localFilesQuery">The query service for retrieving C# files from local sources.</param>
+/// <param name="fileContentQuery">The query to retrieve raw files</param>
 [PublicAPI]
 public class CSharpDataSourceCommand(
     CSharpChunker chunker,
     VectorStoreCommand vectorStoreCommand,
     VectorStoreQuery vectorStoreQuery,
-    FileContentGitHubQuery gitHubFilesQuery,
-    FileContentLocalQuery localFilesQuery)
+    FileContentQuery fileContentQuery) : DataSourceCommand(fileContentQuery)
 {
     /// <summary>
     /// The sourceKind this command ingest
@@ -33,45 +31,21 @@ public class CSharpDataSourceCommand(
     public const string SourceKind = "CSharp";
 
     /// <summary>
-    /// Ingest a Local C# Source
+    /// Ingest a C# Source
     /// </summary>
-    /// <param name="dataSource">The Source to ingest</param>
-    /// <param name="onProgressNotification"></param>
+    /// <param name="dataSource">The Datasource</param>
+    /// <param name="onProgressNotification">Action to execute on progress notification</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task IngestAsync(CSharpDataSourceLocal dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
+    /// <exception cref="ArgumentOutOfRangeException"></exception>
+    public async Task IngestAsync(CSharpDataSource dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
-        Guards(dataSource);
-        FileContent.Models.FileContent[]? files = await localFilesQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "cs", onProgressNotification, cancellationToken);
+        FileContent.Models.FileContent[]? files = await GetFileContent(dataSource, "cs", onProgressNotification, cancellationToken);
         if (files == null)
         {
             onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
             return;
         }
 
-        await IngestAsync(dataSource, files, onProgressNotification, cancellationToken);
-    }
-
-    /// <summary>
-    /// Ingest a GitHub C# Source
-    /// </summary>
-    /// <param name="dataSource">The Source to ingest</param>
-    /// <param name="onProgressNotification">Notification Progress</param>
-    /// <param name="cancellationToken">CancellationToken</param>
-    public async Task IngestAsync(CSharpDataSourceGitHub dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
-    {
-        Guards(dataSource);
-        FileContent.Models.FileContent[]? files = await gitHubFilesQuery.GetRawContentForSourceAsync(dataSource.AsFileContentSource(), "cs", onProgressNotification, cancellationToken);
-        if (files == null)
-        {
-            onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
-            return;
-        }
-
-        await IngestAsync(dataSource, files, onProgressNotification, cancellationToken);
-    }
-
-    private async Task IngestAsync(CSharpDataSource dataSource, FileContent.Models.FileContent[] files, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
-    {
         List<CSharpChunk> codeEntities = [];
 
         foreach (FileContent.Models.FileContent file in files)
@@ -193,14 +167,6 @@ public class CSharpDataSourceCommand(
             }
 
             onProgressNotification?.Invoke(ProgressNotification.Create("Done"));
-        }
-    }
-
-    private static void Guards(DataSource source)
-    {
-        if (string.IsNullOrWhiteSpace(source.Path))
-        {
-            throw new SourceException("Source Path is not defined");
         }
     }
 }

@@ -1,11 +1,12 @@
 using System.Text.RegularExpressions;
+using SimpleRag.DataSourceProviders;
 
 namespace SimpleRag.FileContent.Models;
 
 /// <summary>
-/// Base class describing a source of file content.
+/// Class describing a source of file content.
 /// </summary>
-public abstract class FileContentSource
+public class FileContentSource
 {
     /// <summary>Gets or sets a value indicating whether directories are searched recursively.</summary>
     public required bool Recursive { get; init; }
@@ -15,6 +16,11 @@ public abstract class FileContentSource
 
     /// <summary>Gets or sets patterns for files to ignore.</summary>
     public required string? FileIgnorePatterns { get; init; }
+
+    /// <summary>
+    /// The provider of the source (Local, GitHub, etc.)
+    /// </summary>
+    public required IDataSourceProvider Provider { get; init; }
 
     /// <summary>
     /// Determines whether the specified path should be ignored.

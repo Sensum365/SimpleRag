@@ -5,7 +5,7 @@ namespace SimpleRag.DataSources.Markdown.Models;
 /// <summary>
 /// Base class for markdown sources.
 /// </summary>
-public abstract class MarkdownDataSource : DataSource
+public class MarkdownDataSource : DataSource
 {
     /// <summary>Gets or sets a value indicating whether HTML comments should be ignored.</summary>
     public bool IgnoreCommentedOutContent { get; init; } = true;

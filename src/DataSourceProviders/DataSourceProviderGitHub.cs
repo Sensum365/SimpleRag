@@ -1,11 +1,11 @@
-using SimpleRag.Integrations.GitHub;
+﻿using SimpleRag.Integrations.GitHub;
 
-namespace SimpleRag.FileContent.Models;
+namespace SimpleRag.DataSourceProviders;
 
 /// <summary>
-/// Describes a GitHub source for retrieving files.
+/// A SourceProvider representing files in a GitHub Repository
 /// </summary>
-public class FileContentSourceGitHub : FileContentSource
+public class DataSourceProviderGitHub : IDataSourceProvider
 {
     /// <summary>
     /// Information about the GitHubRepo
@@ -15,5 +15,5 @@ public class FileContentSourceGitHub : FileContentSource
     /// <summary>
     /// Gets or sets the timestamp of the last commit processed.
     /// </summary>
-    public required DateTimeOffset? LastCommitTimestamp { get; init; }
+    public DateTimeOffset? LastCommitTimestamp { get; init; }
 }

@@ -31,18 +31,14 @@ public class Ingestion(CSharpDataSourceCommand cSharpDataSourceCommand, Markdown
             cancellationToken.ThrowIfCancellationRequested();
             switch (source)
             {
-                case CSharpDataSourceLocal cSharpDataSourceLocal:
-                    await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceLocal, options?.OnProgressNotification, cancellationToken);
+                case CSharpDataSource cSharpDataSource:
+                    await cSharpDataSourceCommand.IngestAsync(cSharpDataSource, options?.OnProgressNotification, cancellationToken);
                     break;
-                case CSharpDataSourceGitHub cSharpDataSourceGitHub:
-                    await cSharpDataSourceCommand.IngestAsync(cSharpDataSourceGitHub, options?.OnProgressNotification, cancellationToken);
+                case MarkdownDataSource markdownDataSource:
+                    await markdownDataSourceCommand.IngestAsync(markdownDataSource, options?.OnProgressNotification, cancellationToken);
                     break;
-                case MarkdownDataSourceLocal markdownDataSourceLocal:
-                    await markdownDataSourceCommand.IngestAsync(markdownDataSourceLocal, options?.OnProgressNotification, cancellationToken);
-                    break;
-                case MarkdownDataSourceGitHub markdownDataSourceGitHub:
-                    await markdownDataSourceCommand.IngestAsync(markdownDataSourceGitHub, options?.OnProgressNotification, cancellationToken);
-                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(dataSources), "Unknown datasource");
             }
         }
     }

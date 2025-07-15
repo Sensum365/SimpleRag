@@ -1,5 +1,12 @@
 # Changelog: SimpleRag
 
+## Version 0.0.1-preview10 (15th of July 2025)
+- **WARNING: Quite a few breaking changes in this version to streamline and prepare for first non-preview**
+- - Remove `CSharpDataSourceGitHub`, `CSharpDataSourceLocal` and replace it with `CSharpDataSource` that have a Provider property to define where data source be taken from
+- Remove `MarkdownDataSourceGitHub`, `MarkdownDataSourceLocal` and replace it with `MarkdownDataSource` that have a Provider property to define where data source be taken from
+
+---
+
 ## Version 0.0.1-preview9 (11th of July 2025)
 - Moved LastCommitTimestamp back out on the source itself (wrong to have it in the sub-object)
 
