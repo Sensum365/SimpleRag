@@ -1,7 +1,5 @@
 using JetBrains.Annotations;
 using SimpleRag.DataSources.CSharp.Models;
-using SimpleRag.DataSources.Models;
-using SimpleRag.FileContent;
 using SimpleRag.Helpers;
 using SimpleRag.Models;
 using SimpleRag.VectorStorage;
@@ -17,13 +15,11 @@ namespace SimpleRag.DataSources.CSharp;
 /// <param name="chunker">The CSharpChunker used to extract code entities from C# source files.</param>
 /// <param name="vectorStoreCommand">The command for upserting and deleting vector entities in the vector store.</param>
 /// <param name="vectorStoreQuery">The query service for retrieving existing vector entities from the vector store.</param>
-/// <param name="fileContentQuery">The query to retrieve raw files</param>
 [PublicAPI]
 public class CSharpDataSourceCommand(
     CSharpChunker chunker,
     VectorStoreCommand vectorStoreCommand,
-    VectorStoreQuery vectorStoreQuery,
-    FileContentQuery fileContentQuery) : DataSourceCommand(fileContentQuery)
+    VectorStoreQuery vectorStoreQuery)
 {
     /// <summary>
     /// The sourceKind this command ingest
@@ -39,7 +35,7 @@ public class CSharpDataSourceCommand(
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public async Task IngestAsync(CSharpDataSource dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
-        FileContent.Models.FileContent[]? files = await GetFileContent(dataSource, "cs", onProgressNotification, cancellationToken);
+        FileContent.Models.FileContent[]? files = await dataSource.Provider.GetFileContent(dataSource.AsFileContentSource("cs"), onProgressNotification, cancellationToken);
         if (files == null)
         {
             onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));

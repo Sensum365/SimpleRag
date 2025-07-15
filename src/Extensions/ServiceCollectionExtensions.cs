@@ -47,7 +47,6 @@ public static class ServiceCollectionExtensions
         services.AddScoped<MarkdownChunker>();
         services.AddScoped<MarkdownDataSourceCommand>();
         services.AddScoped<GitHubQuery>();
-        services.AddScoped<FileContentQuery>();
         services.AddSingleton(new GitHubConnection(githubPatToken));
         services.AddScoped<Ingestion>();
         services.AddScoped<Search>();

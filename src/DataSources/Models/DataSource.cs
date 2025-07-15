@@ -47,14 +47,15 @@ public abstract class DataSource
     /// Converts this instance to a <see cref="FileContentSource"/>.
     /// </summary>
     /// <returns>The created file content source.</returns>
-    public FileContentSource AsFileContentSource()
+    public FileContentSource AsFileContentSource(string fileExtensionType)
     {
         return new FileContentSource
         {
             FileIgnorePatterns = FileIgnorePatterns,
             Provider = Provider,
             Path = Path,
-            Recursive = Recursive
+            Recursive = Recursive,
+            FileExtensionType = fileExtensionType
         };
     }
 }

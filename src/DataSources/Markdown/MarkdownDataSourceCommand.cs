@@ -16,8 +16,7 @@ namespace SimpleRag.DataSources.Markdown;
 public class MarkdownDataSourceCommand(
     MarkdownChunker chunker,
     VectorStoreQuery vectorStoreQuery,
-    VectorStoreCommand vectorStoreCommand,
-    FileContentQuery fileContentQuery) : DataSourceCommand(fileContentQuery)
+    VectorStoreCommand vectorStoreCommand)
 {
     /// <summary>The source kind handled by this command.</summary>
     public const string SourceKind = "Markdown";
@@ -31,7 +30,7 @@ public class MarkdownDataSourceCommand(
     /// <exception cref="ArgumentOutOfRangeException"></exception>
     public async Task IngestAsync(MarkdownDataSource dataSource, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
-        FileContent.Models.FileContent[]? files = await GetFileContent(dataSource, "md", onProgressNotification, cancellationToken);
+        FileContent.Models.FileContent[]? files = await dataSource.Provider.GetFileContent(dataSource.AsFileContentSource("md"), onProgressNotification, cancellationToken);
         if (files == null)
         {
             onProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));

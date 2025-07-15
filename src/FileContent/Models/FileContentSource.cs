@@ -23,6 +23,11 @@ public class FileContentSource
     public required IDataSourceProvider Provider { get; init; }
 
     /// <summary>
+    /// The File-extension-type to get content for
+    /// </summary>
+    public required string FileExtensionType { get; init; }
+
+    /// <summary>
     /// Determines whether the specified path should be ignored.
     /// </summary>
     public bool IgnoreFile(string path)
