@@ -3,6 +3,7 @@ using SimpleRag.Helpers;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataProviders.Models;
 
 namespace SimpleRag.DataSources.Markdown;
@@ -10,8 +11,32 @@ namespace SimpleRag.DataSources.Markdown;
 /// <summary>
 /// Class for markdown sources.
 /// </summary>
-public class MarkdownDataSource(IMarkdownChunker chunker, IVectorStoreQuery vectorStoreQuery, IVectorStoreCommand vectorStoreCommand) : FileBasedDataSource
+public class MarkdownDataSource : FileBasedDataSource
 {
+    private readonly IMarkdownChunker _chunker;
+    private readonly IVectorStoreQuery _vectorStoreQuery;
+    private readonly IVectorStoreCommand _vectorStoreCommand;
+
+    /// <summary>
+    /// Class for markdown sources.
+    /// </summary>
+    public MarkdownDataSource(IMarkdownChunker chunker, IVectorStoreQuery vectorStoreQuery, IVectorStoreCommand vectorStoreCommand)
+    {
+        _chunker = chunker;
+        _vectorStoreQuery = vectorStoreQuery;
+        _vectorStoreCommand = vectorStoreCommand;
+    }
+
+    /// <summary>
+    /// Class for markdown sources.
+    /// </summary>
+    public MarkdownDataSource(IServiceProvider serviceProvider)
+    {
+        _chunker = serviceProvider.GetRequiredService<IMarkdownChunker>();
+        _vectorStoreQuery = serviceProvider.GetRequiredService<IVectorStoreQuery>();
+        _vectorStoreCommand = serviceProvider.GetRequiredService<IVectorStoreCommand>();
+    }
+
     /// <summary>The source kind handled by this command.</summary>
     public const string SourceKind = "Markdown";
 
@@ -81,7 +106,7 @@ public class MarkdownDataSource(IMarkdownChunker chunker, IVectorStoreQuery vect
             if (numberOfLine > OnlyChunkIfMoreThanThisNumberOfLines)
             {
                 //Chunk larger files
-                MarkdownChunk[] chunks = chunker.GetChunks(content,
+                MarkdownChunk[] chunks = _chunker.GetChunks(content,
                     LevelsToChunk,
                     ChunkLineIgnorePatterns,
                     IgnoreChunkIfLessThanThisAmountOfChars);
@@ -128,7 +153,7 @@ public class MarkdownDataSource(IMarkdownChunker chunker, IVectorStoreQuery vect
             }
         }
 
-        var existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == CollectionId && x.SourceId == Id, cancellationToken);
+        var existingData = await _vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == CollectionId && x.SourceId == Id, cancellationToken);
 
         int counter = 0;
         List<string> idsToKeep = [];
@@ -140,7 +165,7 @@ public class MarkdownDataSource(IMarkdownChunker chunker, IVectorStoreQuery vect
             var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == entity.GetContentCompareKey());
             if (existing == null)
             {
-                await RetryHelper.ExecuteWithRetryAsync(async () => { await vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
+                await RetryHelper.ExecuteWithRetryAsync(async () => { await _vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
             }
             else
             {
@@ -152,7 +177,7 @@ public class MarkdownDataSource(IMarkdownChunker chunker, IVectorStoreQuery vect
         if (idsToDelete.Count != 0)
         {
             ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source"));
-            await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
+            await _vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
         }
 
         ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create("Done"));

@@ -1,4 +1,5 @@
-﻿using SimpleRag.DataSources.CSharp.Models;
+﻿using Microsoft.Extensions.DependencyInjection;
+using SimpleRag.DataSources.CSharp.Models;
 using SimpleRag.Helpers;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
@@ -9,8 +10,32 @@ namespace SimpleRag.DataSources.CSharp;
 /// <summary>
 /// Represent a C# Based Datasource
 /// </summary>
-public class CSharpDataSource(ICSharpChunker chunker, IVectorStoreQuery vectorStoreQuery, IVectorStoreCommand vectorStoreCommand) : FileBasedDataSource
+public class CSharpDataSource : FileBasedDataSource
 {
+    private readonly ICSharpChunker _chunker;
+    private readonly IVectorStoreQuery _vectorStoreQuery;
+    private readonly IVectorStoreCommand _vectorStoreCommand;
+
+    /// <summary>
+    /// Represent a C# Based Datasource
+    /// </summary>
+    public CSharpDataSource(ICSharpChunker chunker, IVectorStoreQuery vectorStoreQuery, IVectorStoreCommand vectorStoreCommand)
+    {
+        _chunker = chunker;
+        _vectorStoreQuery = vectorStoreQuery;
+        _vectorStoreCommand = vectorStoreCommand;
+    }
+
+    /// <summary>
+    /// Represent a C# Based Datasource
+    /// </summary>
+    public CSharpDataSource(IServiceProvider serviceProvider)
+    {
+        _chunker = serviceProvider.GetRequiredService<ICSharpChunker>();
+        _vectorStoreQuery = serviceProvider.GetRequiredService<IVectorStoreQuery>();
+        _vectorStoreCommand = serviceProvider.GetRequiredService<IVectorStoreCommand>();
+    }
+
     /// <summary>
     /// The sourceKind this command ingest
     /// </summary>
@@ -45,7 +70,7 @@ public class CSharpDataSource(ICSharpChunker chunker, IVectorStoreQuery vectorSt
                 continue;
             }
 
-            List<CSharpChunk> entitiesForFile = chunker.GetCodeEntities(file.Content);
+            List<CSharpChunk> entitiesForFile = _chunker.GetCodeEntities(file.Content);
             foreach (CSharpChunk codeEntity in entitiesForFile)
             {
                 codeEntity.SourcePath = file.PathWithoutRoot;
@@ -104,7 +129,7 @@ public class CSharpDataSource(ICSharpChunker chunker, IVectorStoreQuery vectorSt
                 }
             }
 
-            VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == CollectionId && x.SourceId == Id, cancellationToken);
+            VectorEntity[] existingData = await _vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == CollectionId && x.SourceId == Id, cancellationToken);
 
             int counter = 0;
             List<string> idsToKeep = [];
@@ -140,7 +165,7 @@ public class CSharpDataSource(ICSharpChunker chunker, IVectorStoreQuery vectorSt
                 var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == contentCompareKey);
                 if (existing == null)
                 {
-                    await RetryHelper.ExecuteWithRetryAsync(async () => { await vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
+                    await RetryHelper.ExecuteWithRetryAsync(async () => { await _vectorStoreCommand.UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
                 }
                 else
                 {
@@ -152,7 +177,7 @@ public class CSharpDataSource(ICSharpChunker chunker, IVectorStoreQuery vectorSt
             if (idsToDelete.Count != 0)
             {
                 ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source..."));
-                await vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
+                await _vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
             }
 
             ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create("Done"));
