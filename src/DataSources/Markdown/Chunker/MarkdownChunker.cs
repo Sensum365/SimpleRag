@@ -1,8 +1,7 @@
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
-using SimpleRag.DataSources.Markdown.Models;
 
-namespace SimpleRag.DataSources.Markdown
+namespace SimpleRag.DataSources.Markdown.Chunker
 {
     /// <summary>
     /// Splits markdown content into smaller chunks.

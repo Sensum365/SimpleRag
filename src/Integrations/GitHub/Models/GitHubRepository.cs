@@ -1,4 +1,4 @@
-﻿namespace SimpleRag.Integrations.GitHub;
+﻿namespace SimpleRag.Integrations.GitHub.Models;
 
 /// <summary>
 /// Represent a GitHub Repository

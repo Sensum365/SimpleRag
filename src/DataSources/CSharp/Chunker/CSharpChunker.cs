@@ -3,9 +3,8 @@ using JetBrains.Annotations;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using SimpleRag.DataSources.CSharp.Models;
 
-namespace SimpleRag.DataSources.CSharp
+namespace SimpleRag.DataSources.CSharp.Chunker
 {
     /// <summary>
     /// Breaks C# code into smaller chunks for ingestion.
@@ -24,9 +23,9 @@ namespace SimpleRag.DataSources.CSharp
             var root = tree.GetRoot();
 
             List<CSharpChunk> entries = [];
-            entries.AddRange(ProcessTypeDeclaration<ClassDeclarationSyntax>(root, CSharpKind.Class));
-            entries.AddRange(ProcessTypeDeclaration<StructDeclarationSyntax>(root, CSharpKind.Struct));
-            entries.AddRange(ProcessTypeDeclaration<RecordDeclarationSyntax>(root, CSharpKind.Record));
+            entries.AddRange(ProcessTypeDeclaration<ClassDeclarationSyntax>(root, CSharpChunkKind.Class));
+            entries.AddRange(ProcessTypeDeclaration<StructDeclarationSyntax>(root, CSharpChunkKind.Struct));
+            entries.AddRange(ProcessTypeDeclaration<RecordDeclarationSyntax>(root, CSharpChunkKind.Record));
             entries.AddRange(ProcessEnums(root));
             entries.AddRange(ProcessDelegates(root));
             entries.AddRange(ProcessInterfaces(root));
@@ -50,8 +49,8 @@ namespace SimpleRag.DataSources.CSharp
                 string xmlSummary = GetXmlSummary(node);
                 string name = node.Identifier.ValueText;
                 var parent = GetParentFromNesting(node.Parent);
-                CSharpKind parentKind = GetParentType(node.Parent);
-                result.Add(new CSharpChunk(CSharpKind.Interface, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], root));
+                CSharpChunkKind parentKind = GetParentType(node.Parent);
+                result.Add(new CSharpChunk(CSharpChunkKind.Interface, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], root));
             }
 
             return result;
@@ -75,8 +74,8 @@ namespace SimpleRag.DataSources.CSharp
                 string xmlSummary = GetXmlSummary(node);
                 string name = node.Identifier.ValueText;
                 var parent = GetParentFromNesting(node.Parent);
-                CSharpKind parentKind = GetParentType(node.Parent);
-                result.Add(new CSharpChunk(CSharpKind.Delegate, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], node));
+                CSharpChunkKind parentKind = GetParentType(node.Parent);
+                result.Add(new CSharpChunk(CSharpChunkKind.Delegate, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], node));
             }
 
             return result;
@@ -97,14 +96,14 @@ namespace SimpleRag.DataSources.CSharp
                 string xmlSummary = GetXmlSummary(node);
                 string name = node.Identifier.ValueText;
                 var parent = GetParentFromNesting(node.Parent);
-                CSharpKind parentKind = GetParentType(node.Parent);
-                result.Add(new CSharpChunk(CSharpKind.Enum, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], node));
+                CSharpChunkKind parentKind = GetParentType(node.Parent);
+                result.Add(new CSharpChunk(CSharpChunkKind.Enum, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], node));
             }
 
             return result;
         }
 
-        private List<CSharpChunk> ProcessTypeDeclaration<T>(SyntaxNode root, CSharpKind kind) where T : TypeDeclarationSyntax
+        private List<CSharpChunk> ProcessTypeDeclaration<T>(SyntaxNode root, CSharpChunkKind kind) where T : TypeDeclarationSyntax
         {
             List<CSharpChunk> result = [];
             var nodes = root.DescendantNodes().OfType<T>().ToArray();
@@ -130,9 +129,9 @@ namespace SimpleRag.DataSources.CSharp
                     string xmlSummary = GetXmlSummary(method);
                     string content = method.ToString().Replace(method.Body?.ToString() ?? Guid.NewGuid().ToString(), "").Trim().Trim();
                     string parent = node.Identifier.ValueText;
-                    CSharpKind parentKind = kind;
+                    CSharpChunkKind parentKind = kind;
                     List<string> dependencies = GetMethodDependencies(method);
-                    result.Add(new CSharpChunk(CSharpKind.Method, ns, parent, parentKind, name, xmlSummary, content, dependencies, method));
+                    result.Add(new CSharpChunk(CSharpChunkKind.Method, ns, parent, parentKind, name, xmlSummary, content, dependencies, method));
                 }
 
                 //Store constructors separately
@@ -142,10 +141,10 @@ namespace SimpleRag.DataSources.CSharp
                     string xmlSummary = GetXmlSummary(constructor);
                     ConstructorDeclarationSyntax content = constructor.WithBody(null);
                     string parent = node.Identifier.ValueText;
-                    CSharpKind parentKind = kind;
+                    CSharpChunkKind parentKind = kind;
                     var dependencies = constructor.ParameterList.Parameters.Select(x => x.Type?.ToString() ?? "unknown").ToList();
                     dependencies = RemoveDuplicateAndTrivialDependencies(dependencies);
-                    result.Add(new CSharpChunk(CSharpKind.Constructor, ns, parent, parentKind, name, xmlSummary, content.ToString(), dependencies, constructor));
+                    result.Add(new CSharpChunk(CSharpChunkKind.Constructor, ns, parent, parentKind, name, xmlSummary, content.ToString(), dependencies, constructor));
                 }
 
                 //Entry itself
@@ -220,7 +219,7 @@ namespace SimpleRag.DataSources.CSharp
 
                     sb.AppendLine("}");
                     var parent = GetParentFromNesting(node.Parent);
-                    CSharpKind parentKind = GetParentType(node.Parent);
+                    CSharpChunkKind parentKind = GetParentType(node.Parent);
                     dependencies = RemoveDuplicateAndTrivialDependencies(dependencies);
                     result.Add(new CSharpChunk(kind, ns, parent, parentKind, name, GetXmlSummary(node), sb.ToString(), dependencies, node));
                 }
@@ -400,15 +399,15 @@ namespace SimpleRag.DataSources.CSharp
             };
         }
 
-        private CSharpKind GetParentType(SyntaxNode? parent)
+        private CSharpChunkKind GetParentType(SyntaxNode? parent)
         {
             return parent switch
             {
-                ClassDeclarationSyntax => CSharpKind.Class,
-                RecordDeclarationSyntax => CSharpKind.Record,
-                StructDeclarationSyntax => CSharpKind.Struct,
-                InterfaceDeclarationSyntax => CSharpKind.Interface,
-                _ => CSharpKind.None
+                ClassDeclarationSyntax => CSharpChunkKind.Class,
+                RecordDeclarationSyntax => CSharpChunkKind.Record,
+                StructDeclarationSyntax => CSharpChunkKind.Struct,
+                InterfaceDeclarationSyntax => CSharpChunkKind.Interface,
+                _ => CSharpChunkKind.None
             };
         }
 

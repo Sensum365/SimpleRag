@@ -8,7 +8,13 @@ namespace SimpleRag.DataProviders;
 /// </summary>
 public class LocalFilesDataProvider : IFileContentProvider
 {
-    public async Task<FileContent[]?> GetFileContent(FileContentSource source, Action<ProgressNotification>? onProgressNotification = null, CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Get the File Content of a source
+    /// </summary>
+    /// <param name="source">The File Source</param>
+    /// <param name="onProgressNotification">Action for Progress Notification</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    public async Task<FileContent[]?> GetFileContent(FileContentSource source, Action<Notification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(source.Path))
         {
@@ -18,7 +24,7 @@ public class LocalFilesDataProvider : IFileContentProvider
         List<FileContent> result = [];
 
         string[] files = Directory.GetFiles(source.Path, "*." + source.FileExtensionType, source.Recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly);
-        onProgressNotification?.Invoke(ProgressNotification.Create($"Found {files.Length} files"));
+        onProgressNotification?.Invoke(Notification.Create($"Found {files.Length} files"));
 
         List<string> ignoredFiles = [];
         int counter = 0;
@@ -31,7 +37,7 @@ public class LocalFilesDataProvider : IFileContentProvider
             }
 
             counter++;
-            onProgressNotification?.Invoke(ProgressNotification.Create("Parsing Local files from Disk", counter, files.Length));
+            onProgressNotification?.Invoke(Notification.Create("Parsing Local files from Disk", counter, files.Length));
             var pathWithoutRoot = path.Replace(source.Path, string.Empty);
             string content = await File.ReadAllTextAsync(path, Encoding.UTF8, cancellationToken);
             result.Add(new FileContent(path, content, pathWithoutRoot));
@@ -39,7 +45,7 @@ public class LocalFilesDataProvider : IFileContentProvider
 
         if (ignoredFiles.Count > 0)
         {
-            onProgressNotification?.Invoke(ProgressNotification.Create($"{ignoredFiles.Count} Files Ignored"));
+            onProgressNotification?.Invoke(Notification.Create($"{ignoredFiles.Count} Files Ignored"));
         }
 
         return result.ToArray();

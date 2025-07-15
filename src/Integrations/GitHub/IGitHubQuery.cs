@@ -1,12 +1,13 @@
 using Octokit;
+using SimpleRag.Integrations.GitHub.Models;
 
 namespace SimpleRag.Integrations.GitHub;
 
+/// <summary>
+/// Representation of a Query to do GitHub Operations
+/// </summary>
 public interface IGitHubQuery
 {
-    /// <summary>Gets a value indicating whether a GitHub token is configured.</summary>
-    bool IsGitHubTokenProvided { get; }
-
     /// <summary>
     /// Creates a new authenticated GitHub client.
     /// </summary>

@@ -1,5 +1,8 @@
 namespace SimpleRag.DataSources;
 
+/// <summary>
+/// Representation of a Datasource
+/// </summary>
 public interface IDataSource
 {
     /// <summary>
@@ -12,5 +15,10 @@ public interface IDataSource
     /// </summary>
     string Id { get; init; }
 
+    /// <summary>
+    /// Ingest the Datasource to the VectorStore
+    /// </summary>
+    /// <param name="ingestionOptions">Options for Ingestion</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     Task IngestAsync(IngestionOptions? ingestionOptions, CancellationToken cancellationToken = default);
 }

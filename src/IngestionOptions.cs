@@ -11,5 +11,10 @@ public class IngestionOptions
     /// <summary>
     /// Action to execute on progress
     /// </summary>
-    public Action<ProgressNotification>? OnProgressNotification { get; set; }
+    public Action<Notification>? OnProgressNotification { get; set; }
+
+    internal void ReportProgress(string message, int? current = null, int? total = null, string? details = null)
+    {
+        OnProgressNotification?.Invoke(new Notification(DateTimeOffset.UtcNow, message, current, total, details));
+    }
 }

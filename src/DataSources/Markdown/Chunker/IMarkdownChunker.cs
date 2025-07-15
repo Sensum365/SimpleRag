@@ -1,7 +1,8 @@
-using SimpleRag.DataSources.Markdown.Models;
+namespace SimpleRag.DataSources.Markdown.Chunker;
 
-namespace SimpleRag.DataSources.Markdown;
-
+/// <summary>
+/// Represent a MarkdownChunker
+/// </summary>
 public interface IMarkdownChunker
 {
     /// <summary>

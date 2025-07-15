@@ -1,9 +1,9 @@
-namespace SimpleRag.DataSources.CSharp.Models;
+namespace SimpleRag.DataSources.CSharp.Chunker;
 
 /// <summary>
 /// Represents the kind of C# code element.
 /// </summary>
-public enum CSharpKind
+public enum CSharpChunkKind
 {
     /// <summary>No specific kind.</summary>
     None,

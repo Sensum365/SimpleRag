@@ -1,7 +1,8 @@
-using SimpleRag.DataSources.CSharp.Models;
+namespace SimpleRag.DataSources.CSharp.Chunker;
 
-namespace SimpleRag.DataSources.CSharp;
-
+/// <summary>
+/// Representation of a C# Chunker
+/// </summary>
 public interface ICSharpChunker
 {
     /// <summary>

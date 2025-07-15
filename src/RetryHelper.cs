@@ -1,7 +1,7 @@
 ﻿using Polly;
 using Polly.Retry;
 
-namespace SimpleRag.Helpers;
+namespace SimpleRag;
 
 internal static class RetryHelper
 {

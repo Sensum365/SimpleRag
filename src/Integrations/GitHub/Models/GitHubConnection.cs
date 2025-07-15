@@ -1,4 +1,4 @@
-namespace SimpleRag.Integrations.GitHub;
+namespace SimpleRag.Integrations.GitHub.Models;
 
 /// <summary>
 /// Configuration for connecting to GitHub.

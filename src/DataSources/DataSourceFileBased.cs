@@ -1,4 +1,3 @@
-using SimpleRag.DataProviders;
 using SimpleRag.DataProviders.Models;
 
 namespace SimpleRag.DataSources;
@@ -6,7 +5,7 @@ namespace SimpleRag.DataSources;
 /// <summary>
 /// Base class for all ingestible data sources.
 /// </summary>
-public abstract class FileBasedDataSource : IDataSource
+public abstract class DataSourceFileBased : IDataSource
 {
     /// <summary>
     /// Gets or sets the identifier of the collection.
@@ -47,7 +46,7 @@ public abstract class FileBasedDataSource : IDataSource
     /// Converts this instance to a <see cref="FileContentSource"/>.
     /// </summary>
     /// <returns>The created file content source.</returns>
-    public FileContentSource AsFileContentSource(string fileExtensionType)
+    protected FileContentSource AsFileContentSource(string fileExtensionType)
     {
         return new FileContentSource
         {
@@ -58,5 +57,10 @@ public abstract class FileBasedDataSource : IDataSource
         };
     }
 
-    public abstract Task IngestAsync(IngestionOptions? ingestionOptions, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Ingest the Datasource to the VectorStore
+    /// </summary>
+    /// <param name="ingestionOptions">Options for Ingestion</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    public abstract Task IngestAsync(IngestionOptions? ingestionOptions = null, CancellationToken cancellationToken = default);
 }

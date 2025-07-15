@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using SimpleRag.DataSources.CSharp.Models;
-using SimpleRag.Helpers;
+using SimpleRag.DataSources.CSharp.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 using System.Text;
@@ -10,7 +9,7 @@ namespace SimpleRag.DataSources.CSharp;
 /// <summary>
 /// Represent a C# Based Datasource
 /// </summary>
-public class CSharpDataSource : FileBasedDataSource
+public class CSharpDataSource : DataSourceFileBased
 {
     private readonly ICSharpChunker _chunker;
     private readonly IVectorStoreQuery _vectorStoreQuery;
@@ -49,14 +48,15 @@ public class CSharpDataSource : FileBasedDataSource
     /// <summary>
     /// Ingest a C# Source
     /// </summary>
+    /// <param name="ingestionOptions">Options for the ingestion</param>
     /// <param name="cancellationToken">CancellationToken</param>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    public override async Task IngestAsync(IngestionOptions ingestionOptions = null, CancellationToken cancellationToken = default)
+    public override async Task IngestAsync(IngestionOptions? ingestionOptions = null, CancellationToken cancellationToken = default)
     {
-        DataProviders.Models.FileContent[]? files = await FilesProvider.GetFileContent(AsFileContentSource("cs"), ingestionOptions.OnProgressNotification, cancellationToken);
+        DataProviders.Models.FileContent[]? files = await FilesProvider.GetFileContent(AsFileContentSource("cs"), ingestionOptions?.OnProgressNotification, cancellationToken);
         if (files == null)
         {
-            ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
+            ingestionOptions?.ReportProgress("Nothing new to Ingest so skipping");
             return;
         }
 
@@ -79,7 +79,7 @@ public class CSharpDataSource : FileBasedDataSource
             codeEntities.AddRange(entitiesForFile);
         }
 
-        ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create($"{files.Length} Files was transformed into {codeEntities.Count} Code Entities for Vector Import. Preparing Embedding step..."));
+        ingestionOptions?.ReportProgress($"{files.Length} Files was transformed into {codeEntities.Count} Code Entities for Vector Import. Preparing Embedding step...");
 
         Func<CSharpChunk, string>? cSharpContentFormatBuilder = CSharpContentFormatBuilder;
         if (cSharpContentFormatBuilder == null)
@@ -118,12 +118,12 @@ public class CSharpDataSource : FileBasedDataSource
             {
                 switch (codeEntity.Kind)
                 {
-                    case CSharpKind.Enum:
-                    case CSharpKind.Interface:
-                    case CSharpKind.Constructor:
-                    case CSharpKind.Class:
-                    case CSharpKind.Struct:
-                    case CSharpKind.Record:
+                    case CSharpChunkKind.Enum:
+                    case CSharpChunkKind.Interface:
+                    case CSharpChunkKind.Constructor:
+                    case CSharpChunkKind.Class:
+                    case CSharpChunkKind.Struct:
+                    case CSharpChunkKind.Record:
                         codeEntity.References = codeEntities.Where(x => x != codeEntity && x.Dependencies.Any(y => y == codeEntity.Name)).ToList();
                         break;
                 }
@@ -138,7 +138,7 @@ public class CSharpDataSource : FileBasedDataSource
             {
                 counter++;
 
-                ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create("Embedding Data", counter, codeEntities.Count));
+                ingestionOptions?.ReportProgress("Embedding Data", counter, codeEntities.Count);
 
                 string content = cSharpContentFormatBuilder.Invoke(codeEntity);
 
@@ -176,11 +176,11 @@ public class CSharpDataSource : FileBasedDataSource
             var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
             if (idsToDelete.Count != 0)
             {
-                ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source..."));
+                ingestionOptions?.ReportProgress($"Removing {idsToDelete.Count} entities that are no longer in source...");
                 await _vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
             }
 
-            ingestionOptions.OnProgressNotification?.Invoke(ProgressNotification.Create("Done"));
+            ingestionOptions?.ReportProgress("Done");
         }
     }
 }

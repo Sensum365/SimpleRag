@@ -1,4 +1,4 @@
-namespace SimpleRag.VectorStorage;
+namespace SimpleRag.VectorStorage.Models;
 
 /// <summary>
 /// Configuration for connecting to the vector store.

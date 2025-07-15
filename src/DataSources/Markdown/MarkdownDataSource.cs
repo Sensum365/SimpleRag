@@ -1,17 +1,16 @@
-﻿using SimpleRag.DataSources.Markdown.Models;
-using SimpleRag.Helpers;
-using SimpleRag.VectorStorage;
+﻿using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 using System.Text.RegularExpressions;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataProviders.Models;
+using SimpleRag.DataSources.Markdown.Chunker;
 
 namespace SimpleRag.DataSources.Markdown;
 
 /// <summary>
 /// Class for markdown sources.
 /// </summary>
-public class MarkdownDataSource : FileBasedDataSource
+public class MarkdownDataSource : DataSourceFileBased
 {
     private readonly IMarkdownChunker _chunker;
     private readonly IVectorStoreQuery _vectorStoreQuery;
@@ -71,7 +70,7 @@ public class MarkdownDataSource : FileBasedDataSource
         FileContent[]? files = await FilesProvider.GetFileContent(AsFileContentSource("md"), ingestionOptions?.OnProgressNotification, cancellationToken);
         if (files == null)
         {
-            ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create("Nothing new to Ingest so skipping"));
+            ingestionOptions?.ReportProgress("Nothing new to Ingest so skipping");
             return;
         }
 
@@ -161,7 +160,7 @@ public class MarkdownDataSource : FileBasedDataSource
         {
             counter++;
 
-            ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create("Embedding Data", counter, entries.Count));
+            ingestionOptions?.ReportProgress("Embedding Data", counter, entries.Count);
             var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == entity.GetContentCompareKey());
             if (existing == null)
             {
@@ -176,10 +175,10 @@ public class MarkdownDataSource : FileBasedDataSource
         var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
         if (idsToDelete.Count != 0)
         {
-            ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create($"Removing {idsToDelete.Count} entities that are no longer in source"));
+            ingestionOptions?.ReportProgress($"Removing {idsToDelete.Count} entities that are no longer in source");
             await _vectorStoreCommand.DeleteAsync(idsToDelete, cancellationToken);
         }
 
-        ingestionOptions?.OnProgressNotification?.Invoke(ProgressNotification.Create("Done"));
+        ingestionOptions?.ReportProgress("Done");
     }
 }

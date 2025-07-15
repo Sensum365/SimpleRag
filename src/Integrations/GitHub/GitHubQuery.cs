@@ -1,6 +1,7 @@
 using System.Text;
 using JetBrains.Annotations;
 using Octokit;
+using SimpleRag.Integrations.GitHub.Models;
 using ProductHeaderValue = Octokit.ProductHeaderValue;
 
 namespace SimpleRag.Integrations.GitHub;
@@ -11,9 +12,6 @@ namespace SimpleRag.Integrations.GitHub;
 [PublicAPI]
 public class GitHubQuery(GitHubConnection connection) : IGitHubQuery
 {
-    /// <summary>Gets a value indicating whether a GitHub token is configured.</summary>
-    public bool IsGitHubTokenProvided => !string.IsNullOrWhiteSpace(connection.GitHubToken);
-
     /// <summary>
     /// Creates a new authenticated GitHub client.
     /// </summary>

@@ -1,4 +1,4 @@
-namespace SimpleRag.DataSources.Markdown.Models;
+namespace SimpleRag.DataSources.Markdown.Chunker;
 
 /// <summary>
 /// Represents a chunk of markdown content.

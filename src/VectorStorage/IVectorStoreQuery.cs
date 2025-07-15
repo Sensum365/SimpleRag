@@ -3,6 +3,9 @@ using SimpleRag.VectorStorage.Models;
 
 namespace SimpleRag.VectorStorage;
 
+/// <summary>
+/// Represent a VectorStoreQuery
+/// </summary>
 public interface IVectorStoreQuery
 {
     /// <summary>

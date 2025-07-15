@@ -1,10 +1,11 @@
 # Changelog: SimpleRag
 
-## Version 1.0.0-preview1 (15th of July 2025)
-**WARNING: Tons of breaking changes to allow for custom implementations [Sorry for all the constant changes, but things are moving in the right direction now and]**
-- Everything now have interfaces
+## Version 0.0.1-preview11 (15th of July 2025)
+**WARNING: Tons of breaking changes to allow for custom implementations [Sorry for all the constant changes, but things are moving in the right direction now]**
+- Everything now use interfaces
+- Lots of namespace changes
 - `CSharpDataSourceCommand` and `MarkdowSourceCommand` are no no more and instead each Datasource contains it implementation so Customer Datasources and Custom DataProviders are possible
-
+- Added DataManagement Service
 ---
 
 ## Version 0.0.1-preview10 (15th of July 2025)

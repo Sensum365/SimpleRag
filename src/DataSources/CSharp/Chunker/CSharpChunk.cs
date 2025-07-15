@@ -3,7 +3,7 @@ using JetBrains.Annotations;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Formatting;
 
-namespace SimpleRag.DataSources.CSharp.Models;
+namespace SimpleRag.DataSources.CSharp.Chunker;
 
 /// <summary>
 /// Represents a chunk of C# code.
@@ -18,12 +18,12 @@ namespace SimpleRag.DataSources.CSharp.Models;
 /// <param name="dependencies">A list of dependencies for the code element.</param>
 /// <param name="node">The syntax node from Roslyn.</param>
 [PublicAPI]
-public class CSharpChunk(CSharpKind kind, string @namespace, string? parent, CSharpKind? parentKind, string name, string xmlSummary, string value, List<string> dependencies, SyntaxNode node)
+public class CSharpChunk(CSharpChunkKind kind, string @namespace, string? parent, CSharpChunkKind? parentKind, string name, string xmlSummary, string value, List<string> dependencies, SyntaxNode node)
 {
     /// <summary>
     /// Gets the kind of C# code element.
     /// </summary>
-    public CSharpKind Kind { get; } = kind;
+    public CSharpChunkKind Kind { get; } = kind;
 
     /// <summary>
     /// Gets the namespace of the code element.
@@ -38,7 +38,7 @@ public class CSharpChunk(CSharpKind kind, string @namespace, string? parent, CSh
     /// <summary>
     /// Gets the kind of the parent code element.
     /// </summary>
-    public CSharpKind? ParentKind { get; } = parentKind;
+    public CSharpChunkKind? ParentKind { get; } = parentKind;
 
     /// <summary>
     /// Gets the name of the code element.

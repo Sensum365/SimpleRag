@@ -1,4 +1,4 @@
-namespace SimpleRag.DataProviders;
+namespace SimpleRag.DataProviders.Models;
 
 /// <summary>
 /// Exception thrown when file content retrieval fails.

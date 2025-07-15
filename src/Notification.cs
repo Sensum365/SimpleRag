@@ -11,7 +11,7 @@ namespace SimpleRag;
 /// <param name="Total">The total progress value.</param>
 /// <param name="Details">Optional additional details.</param>
 [PublicAPI]
-public record ProgressNotification(DateTimeOffset Timestamp, string Message, int Current = 0, int Total = 0, string? Details = null)
+public record Notification(DateTimeOffset Timestamp, string Message, int? Current = null, int? Total = null, string? Details = null)
 {
     /// <summary>Gets or sets optional additional arguments.</summary>
     public object? Arguments { get; init; }
@@ -21,14 +21,12 @@ public record ProgressNotification(DateTimeOffset Timestamp, string Message, int
     /// </summary>
     public string GetFormattedMessageWithDetails()
     {
-        if (Current != 0 && Total != 0)
+        if (Current.HasValue && Total.HasValue)
         {
             return !string.IsNullOrWhiteSpace(Details) ? $"{Message} ({Current}/{Total}) [{Details}]" : $"{Message} ({Current}/{Total})";
         }
-        else
-        {
-            return !string.IsNullOrWhiteSpace(Details) ? $"{Message} [{Details}]" : $"{Message}";
-        }
+
+        return !string.IsNullOrWhiteSpace(Details) ? $"{Message} [{Details}]" : $"{Message}";
     }
 
     /// <summary>
@@ -54,8 +52,8 @@ public record ProgressNotification(DateTimeOffset Timestamp, string Message, int
     /// <param name="total">Total</param>
     /// <param name="details">Details</param>
     /// <returns>Notification</returns>
-    public static ProgressNotification Create(string message, int current = 0, int total = 0, string? details = null)
+    public static Notification Create(string message, int? current = null, int? total = null, string? details = null)
     {
-        return new ProgressNotification(DateTimeOffset.UtcNow, message, current, total, details);
+        return new Notification(DateTimeOffset.UtcNow, message, current, total, details);
     }
 }

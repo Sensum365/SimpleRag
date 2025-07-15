@@ -1,11 +1,15 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataSources.CSharp;
+using SimpleRag.DataSources.CSharp.Chunker;
 using SimpleRag.DataSources.Markdown;
+using SimpleRag.DataSources.Markdown.Chunker;
 using SimpleRag.Integrations.GitHub;
+using SimpleRag.Integrations.GitHub.Models;
 using SimpleRag.VectorStorage;
+using SimpleRag.VectorStorage.Models;
 
-namespace SimpleRag.Extensions;
+namespace SimpleRag;
 
 /// <summary>
 /// Extension methods for registering SimpleRag services.
@@ -47,5 +51,6 @@ public static class ServiceCollectionExtensions
         services.AddSingleton(new GitHubConnection(githubPatToken));
         services.AddScoped<Ingestion>();
         services.AddScoped<Search>();
+        services.AddScoped<DataManagement>();
     }
 }
