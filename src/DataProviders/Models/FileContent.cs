@@ -10,6 +10,10 @@ namespace SimpleRag.DataProviders.Models;
 /// <param name="PathWithoutRoot">The path relative to the configured root.</param>
 public record FileContent(string Path, byte[] Bytes, string PathWithoutRoot)
 {
+    /// <summary>
+    /// Get the raw content as UTF8 String
+    /// </summary>
+    /// <returns></returns>
     public string GetContentAsUtf8String()
     {
         return Encoding.UTF8.GetString(Bytes);

@@ -1,6 +1,10 @@
 # Changelog: SimpleRag
 
-## Unreleased
+## Version 0.0.1-preview12 (19th of July 2025)
+- Breaking Change: Removed .AddSimpleRagWithGitHubIntegration (github credentails are now given directly to DataProvider to make it more simple to understand and allow different credentials to different sources)
+- Breaking Change: GitHubRepository is now a record
+- Breaking Change: Made the GitHubQuery internal
+- Added support for connecting to github with a GitHubApp (instead of a PAT Token)
 - Added VectorStoreCommand.SyncAsync for Easier custom implementations
 - `FileContent` now operates with bytes instead raw Text to support binary files
 - Added first crude version of a PDF Datasource

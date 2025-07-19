@@ -10,5 +10,5 @@ public interface ICSharpChunker
     /// </summary>
     /// <param name="code">The code to analyze.</param>
     /// <returns>A list of discovered code chunks.</returns>
-    List<CSharpChunk> GetCodeEntities(string code);
+    List<CSharpChunk> GetChunks(string code);
 }

@@ -70,7 +70,7 @@ public class CSharpDataSource : DataSourceFileBased
                 continue;
             }
 
-            List<CSharpChunk> entitiesForFile = _chunker.GetCodeEntities(content);
+            List<CSharpChunk> entitiesForFile = _chunker.GetChunks(content);
             foreach (CSharpChunk codeEntity in entitiesForFile)
             {
                 codeEntity.SourcePath = file.PathWithoutRoot;

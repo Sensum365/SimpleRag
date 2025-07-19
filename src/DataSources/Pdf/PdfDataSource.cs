@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataProviders.Models;
+using SimpleRag.DataSources.Pdf.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 using UglyToad.PdfPig;
@@ -15,6 +16,7 @@ namespace SimpleRag.DataSources.Pdf;
 [PublicAPI]
 public class PdfDataSource : DataSourceFileBased
 {
+    private readonly IPdfChunker _chunker;
     private readonly IVectorStoreCommand _vectorStoreCommand;
 
     /// <summary>
@@ -22,14 +24,16 @@ public class PdfDataSource : DataSourceFileBased
     /// </summary>
     public PdfDataSource(IServiceProvider serviceProvider)
     {
+        _chunker = serviceProvider.GetRequiredService<IPdfChunker>();
         _vectorStoreCommand = serviceProvider.GetRequiredService<IVectorStoreCommand>();
     }
 
     /// <summary>
     /// Represent a PDF Datasource
     /// </summary>
-    public PdfDataSource(IVectorStoreCommand vectorStoreCommand)
+    public PdfDataSource(IPdfChunker chunker, IVectorStoreCommand vectorStoreCommand)
     {
+        _chunker = chunker;
         _vectorStoreCommand = vectorStoreCommand;
     }
 
@@ -56,21 +60,13 @@ public class PdfDataSource : DataSourceFileBased
         foreach (FileContent file in files)
         {
             ingestionOptions?.ReportProgress("Reading documents", counter, files.Length, file.PathWithoutRoot);
+            PdfChunk[] chunks = _chunker.GetChunks(file);
             counter++;
-            PdfDocument document = PdfDocument.Open(file.Bytes);
-            int pageNumber = 1;
-            foreach (Page page in document.GetPages())
+            foreach (PdfChunk chunk in chunks)
             {
-                string pageText = page.Text;
-                if (string.IsNullOrWhiteSpace(pageText))
-                {
-                    continue;
-                }
-
-                string filename = System.IO.Path.GetFileNameWithoutExtension(file.Path);
                 StringBuilder content = new();
-                content.AppendLine($"<pdf_page page_number=\"{pageNumber}\" total_pages=\"{document.NumberOfPages}\" file_name=\"{filename}\" folder=\"{file.PathWithoutRoot}\">");
-                content.AppendLine(pageText);
+                content.AppendLine($"<pdf_page page_number=\"{chunk.Page}\" total_pages=\"{chunk.TotalPages}\" file_name=\"{chunk.Filename}\" folder=\"{chunk.Folder}\">");
+                content.AppendLine(chunk.Text);
                 content.AppendLine("</pdf_page>");
 
                 entities.Add(new VectorEntity
@@ -85,13 +81,12 @@ public class PdfDataSource : DataSourceFileBased
                     ContentId = null,
                     ContentParent = null,
                     ContentParentKind = null,
-                    ContentName = filename + "_page" + pageNumber,
+                    ContentName = chunk.Filename + "_page" + chunk.Page,
                     ContentDependencies = null,
                     ContentDescription = null,
                     ContentReferences = null,
                     ContentNamespace = null,
                 });
-                pageNumber++;
             }
         }
 

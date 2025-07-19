@@ -11,14 +11,15 @@ namespace SimpleRag.DataProviders;
 /// </summary>
 public class GitHubFilesDataProvider : IFileContentProvider
 {
-    private readonly IGitHubQuery _gitHubQuery;
+    private readonly GitHubCredentials _credentials;
 
     /// <summary>
     /// A SourceProvider representing files in a GitHub Repository
+    /// <param name="credentials">The Credentials to connect to GitHub</param>
     /// </summary>
-    public GitHubFilesDataProvider(IGitHubQuery gitHubQuery)
+    public GitHubFilesDataProvider(GitHubCredentials credentials)
     {
-        _gitHubQuery = gitHubQuery;
+        _credentials = credentials;
     }
 
     /// <summary>
@@ -26,7 +27,7 @@ public class GitHubFilesDataProvider : IFileContentProvider
     /// </summary>
     public GitHubFilesDataProvider(IServiceProvider serviceProvider)
     {
-        _gitHubQuery = serviceProvider.GetRequiredService<IGitHubQuery>();
+        _credentials = serviceProvider.GetRequiredService<GitHubCredentials>();
     }
 
     /// <summary>
@@ -59,10 +60,12 @@ public class GitHubFilesDataProvider : IFileContentProvider
 
         List<FileContent> result = [];
 
-        onProgressNotification?.Invoke(Notification.Create("Exploring GitHub"));
-        var gitHubClient = _gitHubQuery.GetGitHubClient();
+        GitHubQuery gitHubQuery = new(_credentials);
 
-        var commit = await _gitHubQuery.GetLatestCommitAsync(gitHubClient, GitHubRepository);
+        onProgressNotification?.Invoke(Notification.Create("Exploring GitHub"));
+        var gitHubClient = await gitHubQuery.GetGitHubClientAsync();
+
+        var commit = await gitHubQuery.GetLatestCommitAsync(gitHubClient, GitHubRepository);
         cancellationToken.ThrowIfCancellationRequested();
         if (LastCommitTimestamp.HasValue && commit.Committer.Date <= LastCommitTimestamp.Value)
         {
@@ -70,7 +73,7 @@ public class GitHubFilesDataProvider : IFileContentProvider
             return null;
         }
 
-        var treeResponse = await _gitHubQuery.GetTreeAsync(gitHubClient, commit, GitHubRepository, source.Recursive);
+        var treeResponse = await gitHubQuery.GetTreeAsync(gitHubClient, commit, GitHubRepository, source.Recursive);
         string fileExtensionType = "." + source.FileExtensionType;
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -109,7 +112,7 @@ public class GitHubFilesDataProvider : IFileContentProvider
             cancellationToken.ThrowIfCancellationRequested();
 
             onProgressNotification?.Invoke(Notification.Create("Downloading file-content from GitHub", counter, items.Length, pathWithoutRoot));
-            var bytes = await _gitHubQuery.GetFileContentAsync(gitHubClient, GitHubRepository, path);
+            var bytes = await gitHubQuery.GetFileContentAsync(gitHubClient, GitHubRepository, path);
             if (bytes == null)
             {
                 continue;

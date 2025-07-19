@@ -17,7 +17,7 @@ namespace SimpleRag.DataSources.CSharp.Chunker
         /// </summary>
         /// <param name="code">The code to analyze.</param>
         /// <returns>A list of discovered code chunks.</returns>
-        public List<CSharpChunk> GetCodeEntities(string code)
+        public List<CSharpChunk> GetChunks(string code)
         {
             SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
             var root = tree.GetRoot();

@@ -1,37 +1,86 @@
-using System.Text;
-using JetBrains.Annotations;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Cryptography;
+using Microsoft.IdentityModel.Tokens;
 using Octokit;
 using SimpleRag.Integrations.GitHub.Models;
 using ProductHeaderValue = Octokit.ProductHeaderValue;
 
 namespace SimpleRag.Integrations.GitHub;
 
-/// <summary>
-/// Helper methods for interacting with the GitHub API.
-/// </summary>
-[PublicAPI]
-public class GitHubQuery(GitHubCredentials credentials) : IGitHubQuery
+internal class GitHubQuery(GitHubCredentials credentials)
 {
-    /// <summary>
-    /// Creates a new authenticated GitHub client.
-    /// </summary>
-    /// <returns>The GitHub client.</returns>
-    public GitHubClient GetGitHubClient()
+    public async Task<GitHubClient> GetGitHubClientAsync()
     {
-        if (string.IsNullOrWhiteSpace(credentials.GitHubToken))
+        if (!string.IsNullOrWhiteSpace(credentials.PersonalAccessToken))
         {
-            throw new GitHubIntegrationException("The optional GitHubToken configuration variable is not set so can't interact with GitHubApi");
+            return new GitHubClient(new ProductHeaderValue("SimpleRag"))
+            {
+                Credentials = new Credentials(credentials.PersonalAccessToken)
+            };
         }
 
-        return new GitHubClient(new ProductHeaderValue("CodeRag"))
+        if (!string.IsNullOrWhiteSpace(credentials.AppId) && !string.IsNullOrWhiteSpace(credentials.PrivateKey))
         {
-            Credentials = new Credentials(credentials.GitHubToken)
-        };
+            string jwtToken = GenerateJwtToken(credentials.PrivateKey, credentials.AppId);
+            var githubClient = new GitHubClient(new ProductHeaderValue("SimpleRag"))
+            {
+                Credentials = new Credentials(jwtToken, AuthenticationType.Bearer)
+            };
+
+            var installations = await githubClient.GitHubApps.GetAllInstallationsForCurrent();
+
+            // Get installation token for the first installation
+            var installationId = installations[0].Id;
+            var installationToken = await githubClient.GitHubApps.CreateInstallationToken(installationId);
+
+            githubClient.Credentials = new Credentials(installationToken.Token);
+            return githubClient;
+        }
+
+        throw new GitHubIntegrationException("No valid GitHub Credentials where given");
+
+        string GenerateJwtToken(string privateKey, string appId)
+        {
+            RSA rsa = RSA.Create();
+            rsa.ImportFromPem(privateKey);
+
+            try
+            {
+                var rsaParameters = rsa.ExportParameters(true); // Export key material
+                var now = DateTimeOffset.UtcNow;
+
+                // Use the key material to create a new independent RSA key
+                var independentRsa = RSA.Create();
+                independentRsa.ImportParameters(rsaParameters);
+
+                // Create the signing key and credentials
+                var rsaSecurityKey = new RsaSecurityKey(independentRsa);
+                var signingCredentials = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
+
+                // Create the JWT Header and Payload
+                var securityToken = new JwtSecurityToken(
+                    issuer: appId,
+                    claims: null,
+                    notBefore: now.UtcDateTime,
+                    expires: now.AddMinutes(9).UtcDateTime,
+                    signingCredentials: signingCredentials
+                )
+                {
+                    Payload =
+                    {
+                        ["iat"] = now.ToUnixTimeSeconds()
+                    }
+                };
+
+                return new JwtSecurityTokenHandler().WriteToken(securityToken);
+            }
+            finally
+            {
+                rsa.Dispose(); // Dispose of the original RSA instance
+            }
+        }
     }
 
-    /// <summary>
-    /// Gets the tree for the specified commit.
-    /// </summary>
     public async Task<TreeResponse> GetTreeAsync(GitHubClient client, Commit commit, GitHubRepository repo, bool recursive)
     {
         if (recursive)
@@ -42,9 +91,6 @@ public class GitHubQuery(GitHubCredentials credentials) : IGitHubQuery
         return await client.Git.Tree.Get(repo.Owner, repo.Name, commit.Tree.Sha);
     }
 
-    /// <summary>
-    /// Gets the latest commit of the specified repository.
-    /// </summary>
     public async Task<Commit> GetLatestCommitAsync(GitHubClient client, GitHubRepository repo)
     {
         Repository repository = await client.Repository.Get(repo.Owner, repo.Name);
@@ -55,9 +101,6 @@ public class GitHubQuery(GitHubCredentials credentials) : IGitHubQuery
         return await client.Git.Commit.Get(repo.Owner, repo.Name, reference.Object.Sha);
     }
 
-    /// <summary>
-    /// Retrieves the raw file content from GitHub.
-    /// </summary>
     public async Task<byte[]?> GetFileContentAsync(GitHubClient client, GitHubRepository repo, string path)
     {
         byte[]? fileContent = await client.Repository.Content.GetRawContent(repo.Owner, repo.Name, path);
