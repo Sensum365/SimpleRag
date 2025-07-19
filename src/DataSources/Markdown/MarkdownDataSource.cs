@@ -1,15 +1,17 @@
-﻿using SimpleRag.VectorStorage;
-using SimpleRag.VectorStorage.Models;
-using System.Text.RegularExpressions;
+﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataProviders.Models;
 using SimpleRag.DataSources.Markdown.Chunker;
+using SimpleRag.VectorStorage;
+using SimpleRag.VectorStorage.Models;
+using System.Text.RegularExpressions;
 
 namespace SimpleRag.DataSources.Markdown;
 
 /// <summary>
 /// Class for markdown sources.
 /// </summary>
+[PublicAPI]
 public class MarkdownDataSource : DataSourceFileBased
 {
     private readonly IMarkdownChunker _chunker;
@@ -75,14 +77,14 @@ public class MarkdownDataSource : DataSourceFileBased
 
         foreach (var file in files)
         {
-            var numberOfLine = file.Content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
+            string content = file.GetContentAsUtf8String();
+            var numberOfLine = content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
             if (IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;
             }
 
             string fileNameWithoutExtension = System.IO.Path.GetFileNameWithoutExtension(file.Path);
-            var content = file.Content;
             if (IgnoreCommentedOutContent)
             {
                 //Remove Any Commented out parts

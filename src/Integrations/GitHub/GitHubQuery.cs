@@ -10,7 +10,7 @@ namespace SimpleRag.Integrations.GitHub;
 /// Helper methods for interacting with the GitHub API.
 /// </summary>
 [PublicAPI]
-public class GitHubQuery(GitHubConnection connection) : IGitHubQuery
+public class GitHubQuery(GitHubCredentials credentials) : IGitHubQuery
 {
     /// <summary>
     /// Creates a new authenticated GitHub client.
@@ -18,14 +18,14 @@ public class GitHubQuery(GitHubConnection connection) : IGitHubQuery
     /// <returns>The GitHub client.</returns>
     public GitHubClient GetGitHubClient()
     {
-        if (string.IsNullOrWhiteSpace(connection.GitHubToken))
+        if (string.IsNullOrWhiteSpace(credentials.GitHubToken))
         {
             throw new GitHubIntegrationException("The optional GitHubToken configuration variable is not set so can't interact with GitHubApi");
         }
 
         return new GitHubClient(new ProductHeaderValue("CodeRag"))
         {
-            Credentials = new Credentials(connection.GitHubToken)
+            Credentials = new Credentials(credentials.GitHubToken)
         };
     }
 
@@ -58,9 +58,9 @@ public class GitHubQuery(GitHubConnection connection) : IGitHubQuery
     /// <summary>
     /// Retrieves the raw file content from GitHub.
     /// </summary>
-    public async Task<string?> GetFileContentAsync(GitHubClient client, GitHubRepository repo, string path)
+    public async Task<byte[]?> GetFileContentAsync(GitHubClient client, GitHubRepository repo, string path)
     {
         byte[]? fileContent = await client.Repository.Content.GetRawContent(repo.Owner, repo.Name, path);
-        return fileContent == null ? null : Encoding.UTF8.GetString(fileContent);
+        return fileContent;
     }
 }

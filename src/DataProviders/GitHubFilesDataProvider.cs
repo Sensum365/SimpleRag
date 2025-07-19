@@ -109,13 +109,13 @@ public class GitHubFilesDataProvider : IFileContentProvider
             cancellationToken.ThrowIfCancellationRequested();
 
             onProgressNotification?.Invoke(Notification.Create("Downloading file-content from GitHub", counter, items.Length, pathWithoutRoot));
-            var content = await _gitHubQuery.GetFileContentAsync(gitHubClient, GitHubRepository, path);
-            if (string.IsNullOrWhiteSpace(content))
+            var bytes = await _gitHubQuery.GetFileContentAsync(gitHubClient, GitHubRepository, path);
+            if (bytes == null)
             {
                 continue;
             }
 
-            result.Add(new FileContent(path, content, pathWithoutRoot));
+            result.Add(new FileContent(path, bytes, pathWithoutRoot));
         }
 
         if (ignoredFiles.Count > 0)

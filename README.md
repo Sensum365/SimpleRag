@@ -98,3 +98,6 @@ public class SearchExample(Search search)
     }
 }
 ```
+
+## Legal Stuff
+- PDF Extraction is do with Nuget Package [PDFPig](https://github.com/UglyToad/PdfPig/blob/master/LICENSE) (Apache 2.0 License)

@@ -3,12 +3,14 @@ using SimpleRag.DataSources.CSharp.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace SimpleRag.DataSources.CSharp;
 
 /// <summary>
 /// Represent a C# Based Datasource
 /// </summary>
+[PublicAPI]
 public class CSharpDataSource : DataSourceFileBased
 {
     private readonly ICSharpChunker _chunker;
@@ -61,13 +63,14 @@ public class CSharpDataSource : DataSourceFileBased
 
         foreach (DataProviders.Models.FileContent file in files)
         {
-            var numberOfLine = file.Content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
+            string content = file.GetContentAsUtf8String();
+            var numberOfLine = content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
             if (IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;
             }
 
-            List<CSharpChunk> entitiesForFile = _chunker.GetCodeEntities(file.Content);
+            List<CSharpChunk> entitiesForFile = _chunker.GetCodeEntities(content);
             foreach (CSharpChunk codeEntity in entitiesForFile)
             {
                 codeEntity.SourcePath = file.PathWithoutRoot;

@@ -2,7 +2,8 @@
 
 ## Unreleased
 - Added VectorStoreCommand.SyncAsync for Easier custom implementations
-
+- `FileContent` now operates with bytes instead raw Text to support binary files
+- Added first crude version of a PDF Datasource
 ---
 
 ## Version 0.0.1-preview11 (15th of July 2025)

@@ -37,20 +37,5 @@ public static class ServiceCollectionExtensions
         VectorStoreConfiguration configuration,
         Func<IServiceProvider, T>? vectorStoreFactory, string githubPatToken) where T : Microsoft.Extensions.VectorData.VectorStore
     {
-        services.AddScoped<IVectorStoreQuery, VectorStoreQuery>();
-        services.AddScoped<IVectorStoreCommand, VectorStoreCommand>();
-        services.AddSingleton(configuration);
-        if (vectorStoreFactory != null)
-        {
-            services.AddScoped<Microsoft.Extensions.VectorData.VectorStore, T>(vectorStoreFactory);
-        }
-
-        services.AddScoped<ICSharpChunker, CSharpChunker>();
-        services.AddScoped<IMarkdownChunker, MarkdownChunker>();
-        services.AddScoped<IGitHubQuery, GitHubQuery>();
-        services.AddSingleton(new GitHubConnection(githubPatToken));
-        services.AddScoped<Ingestion>();
-        services.AddScoped<Search>();
-        services.AddScoped<DataManagement>();
     }
 }

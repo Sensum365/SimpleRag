@@ -27,5 +27,5 @@ public interface IGitHubQuery
     /// <summary>
     /// Retrieves the raw file content from GitHub.
     /// </summary>
-    Task<string?> GetFileContentAsync(GitHubClient client, GitHubRepository repo, string path);
+    Task<byte[]?> GetFileContentAsync(GitHubClient client, GitHubRepository repo, string path);
 }

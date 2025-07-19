@@ -39,8 +39,8 @@ public class LocalFilesDataProvider : IFileContentProvider
             counter++;
             onProgressNotification?.Invoke(Notification.Create("Parsing Local files from Disk", counter, files.Length));
             var pathWithoutRoot = path.Replace(source.Path, string.Empty);
-            string content = await File.ReadAllTextAsync(path, Encoding.UTF8, cancellationToken);
-            result.Add(new FileContent(path, content, pathWithoutRoot));
+            byte[] bytes = await File.ReadAllBytesAsync(path, cancellationToken);
+            result.Add(new FileContent(path, bytes, pathWithoutRoot));
         }
 
         if (ignoredFiles.Count > 0)
