@@ -1,5 +1,4 @@
-﻿using System.Text;
-using SimpleRag.DataProviders.Models;
+﻿using SimpleRag.DataProviders.Models;
 
 namespace SimpleRag.DataProviders;
 

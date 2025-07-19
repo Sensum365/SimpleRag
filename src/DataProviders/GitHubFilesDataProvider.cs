@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using JetBrains.Annotations;
+using Microsoft.Extensions.DependencyInjection;
 using Octokit;
 using SimpleRag.DataProviders.Models;
 using SimpleRag.Integrations.GitHub;
@@ -9,6 +10,7 @@ namespace SimpleRag.DataProviders;
 /// <summary>
 /// A SourceProvider representing files in a GitHub Repository
 /// </summary>
+[PublicAPI]
 public class GitHubFilesDataProvider : IFileContentProvider
 {
     private readonly GitHubCredentials _credentials;

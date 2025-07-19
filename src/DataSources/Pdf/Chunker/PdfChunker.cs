@@ -1,15 +1,22 @@
 ﻿using SimpleRag.DataProviders.Models;
-using System.Text;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
 namespace SimpleRag.DataSources.Pdf.Chunker;
 
+/// <summary>
+/// PDF Chunker that can break down a PDF File into smaller chunks
+/// </summary>
 public class PdfChunker : IPdfChunker
 {
+    /// <summary>
+    /// Get the Chunks of a PDF
+    /// </summary>
+    /// <param name="file">The PDF File to Chunk</param>
+    /// <returns>Chunks</returns>
     public PdfChunk[] GetChunks(FileContent file)
     {
-        List<PdfChunk> chunks = new List<PdfChunk>();
+        List<PdfChunk> chunks = [];
         PdfDocument document = PdfDocument.Open(file.Bytes);
         int pageNumber = 1;
         foreach (Page page in document.GetPages())

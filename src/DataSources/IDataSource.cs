@@ -1,8 +1,11 @@
+using JetBrains.Annotations;
+
 namespace SimpleRag.DataSources;
 
 /// <summary>
 /// Representation of a Datasource
 /// </summary>
+[PublicAPI]
 public interface IDataSource
 {
     /// <summary>

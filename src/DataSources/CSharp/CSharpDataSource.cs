@@ -143,7 +143,7 @@ public class CSharpDataSource : DataSourceFileBased
                 ContentName = x.Name,
                 ContentNamespace = x.Namespace,
                 ContentDependencies = x.Dependencies.Count == 0 ? null : string.Join(";", x.Dependencies),
-                ContentReferences = x.References is { Count: 0 } ? null : string.Join(";", x.References?.Select(x => x.Path) ?? []),
+                ContentReferences = x.References is { Count: 0 } ? null : string.Join(";", x.References?.Select(y => y.Path) ?? []),
                 ContentDescription = x.XmlSummary,
                 Content = cSharpContentFormatBuilder.Invoke(x),
             });

@@ -5,8 +5,6 @@ using SimpleRag.DataProviders.Models;
 using SimpleRag.DataSources.Pdf.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
-using UglyToad.PdfPig;
-using UglyToad.PdfPig.Content;
 
 namespace SimpleRag.DataSources.Pdf;
 
@@ -47,7 +45,7 @@ public class PdfDataSource : DataSourceFileBased
     /// <param name="cancellationToken">CancellationToken</param>
     public override async Task IngestAsync(IngestionOptions? ingestionOptions = null, CancellationToken cancellationToken = default)
     {
-        FileContent[]? files = await base.FilesProvider.GetFileContent(AsFileContentSource("pdf"), ingestionOptions?.OnProgressNotification, cancellationToken);
+        FileContent[]? files = await FilesProvider.GetFileContent(AsFileContentSource("pdf"), ingestionOptions?.OnProgressNotification, cancellationToken);
         if (files == null)
         {
             ingestionOptions?.ReportProgress("Nothing new to Ingest so skipping");

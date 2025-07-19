@@ -1,4 +1,5 @@
-﻿using SimpleRag.VectorStorage;
+﻿using JetBrains.Annotations;
+using SimpleRag.VectorStorage;
 
 namespace SimpleRag;
 
@@ -6,6 +7,7 @@ namespace SimpleRag;
 /// Do Data Management on existing DataSources
 /// </summary>
 /// <param name="vectorStoreCommand"></param>
+[PublicAPI]
 public class DataManagement(IVectorStoreCommand vectorStoreCommand)
 {
     /// <summary>

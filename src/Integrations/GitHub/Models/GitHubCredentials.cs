@@ -1,8 +1,11 @@
+using JetBrains.Annotations;
+
 namespace SimpleRag.Integrations.GitHub.Models;
 
 /// <summary>
 /// Configuration for connecting to GitHub.
 /// </summary>
+[PublicAPI]
 public record GitHubCredentials
 {
     /// <summary>
@@ -18,7 +21,7 @@ public record GitHubCredentials
     /// <summary>
     /// Token (Credentials using PAT)
     /// </summary>
-    public string? PersonalAccessToken { get; init; }
+    public string? PersonalAccessToken { get; }
 
     /// <summary>
     /// Constructor (PAT)

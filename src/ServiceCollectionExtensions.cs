@@ -1,12 +1,8 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
-using SimpleRag.DataSources.CSharp;
 using SimpleRag.DataSources.CSharp.Chunker;
-using SimpleRag.DataSources.Markdown;
 using SimpleRag.DataSources.Markdown.Chunker;
 using SimpleRag.DataSources.Pdf.Chunker;
-using SimpleRag.Integrations.GitHub;
-using SimpleRag.Integrations.GitHub.Models;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 

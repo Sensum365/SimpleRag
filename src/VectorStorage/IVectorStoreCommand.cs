@@ -1,12 +1,14 @@
 ﻿using SimpleRag.DataSources;
 using SimpleRag.VectorStorage.Models;
 using System.Linq.Expressions;
+using JetBrains.Annotations;
 
 namespace SimpleRag.VectorStorage;
 
 /// <summary>
 /// Represent a VectorStoreCommand
 /// </summary>
+[PublicAPI]
 public interface IVectorStoreCommand
 {
     /// <summary>
