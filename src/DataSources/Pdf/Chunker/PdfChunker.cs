@@ -27,10 +27,12 @@ public class PdfChunker : IPdfChunker
                 continue;
             }
 
-            string filename = Path.GetFileNameWithoutExtension(file.Path);
-            string folder = file.PathWithoutRoot;
+            string name = Path.GetFileNameWithoutExtension(file.Path);
             pageNumber++;
-            chunks.Add(new PdfChunk(filename, folder, pageNumber, document.NumberOfPages, pageText));
+            chunks.Add(new PdfChunk(name, pageNumber, document.NumberOfPages, pageText)
+            {
+                SourcePath = file.PathWithoutRoot
+            });
         }
 
         return chunks.ToArray();

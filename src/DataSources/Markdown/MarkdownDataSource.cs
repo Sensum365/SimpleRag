@@ -1,6 +1,8 @@
-﻿using JetBrains.Annotations;
+﻿using System.Text;
+using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataProviders.Models;
+using SimpleRag.DataSources.CSharp.Chunker;
 using SimpleRag.DataSources.Markdown.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
@@ -56,7 +58,11 @@ public class MarkdownDataSource : DataSourceFileBased
     /// <summary>Gets or sets the minimum size of a chunk in characters.</summary>
     public int? IgnoreChunkIfLessThanThisAmountOfChars { get; init; } = 25;
 
-    //todo support content format builder
+
+    /// <summary>
+    /// Builder of the desired format of the Content to be vectorized or leave null to use the default provided format
+    /// </summary>
+    public Func<MarkdownChunk, string>? ContentFormatBuilder { get; set; }
 
     /// <summary>
     /// Ingest a Markdown Source
@@ -73,12 +79,22 @@ public class MarkdownDataSource : DataSourceFileBased
             return;
         }
 
+        var newLine = Environment.NewLine;
+        Func<MarkdownChunk, string>? contentFormatBuilder = ContentFormatBuilder ?? (chunk =>
+        {
+            StringBuilder contentBuilder = new();
+            contentBuilder.AppendLine($"<markdown name=\"{chunk.Name}\" source=\"{System.IO.Path.GetFileNameWithoutExtension(chunk.SourcePath)}\">");
+            contentBuilder.AppendLine(chunk.Content);
+            contentBuilder.AppendLine("</markdown>");
+            return contentBuilder.ToString();
+        });
+
         List<VectorEntity> entries = [];
 
         foreach (var file in files)
         {
-            string content = file.GetContentAsUtf8String();
-            var numberOfLine = content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
+            string fileContent = file.GetContentAsUtf8String();
+            var numberOfLine = fileContent.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
             if (IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;
@@ -88,32 +104,36 @@ public class MarkdownDataSource : DataSourceFileBased
             if (IgnoreCommentedOutContent)
             {
                 //Remove Any Commented out parts
-                content = Regex.Replace(content, "<!--[\\s\\S]*?-->", string.Empty);
+                fileContent = Regex.Replace(fileContent, "<!--[\\s\\S]*?-->", string.Empty);
             }
 
             if (IgnoreImages)
             {
                 //Remove Any Images
-                content = Regex.Replace(content, @"!\[.*?\]\(.*?\)", string.Empty);
+                fileContent = Regex.Replace(fileContent, @"!\[.*?\]\(.*?\)", string.Empty);
             }
 
-            var newLine = Environment.NewLine;
-            content = Regex.Replace(content, @"\r\n[\r\n]+|\r[\r]+|\n[\n]+", newLine + newLine);
-            content = content.Trim();
+            fileContent = Regex.Replace(fileContent, @"\r\n[\r\n]+|\r[\r]+|\n[\n]+", newLine + newLine);
+            fileContent = fileContent.Trim();
 
             if (numberOfLine > OnlyChunkIfMoreThanThisNumberOfLines)
             {
                 //Chunk larger files
-                MarkdownChunk[] chunks = _chunker.GetChunks(content,
+                MarkdownChunk[] chunks = _chunker.GetChunks(fileContent,
                     LevelsToChunk,
                     ChunkLineIgnorePatterns,
                     IgnoreChunkIfLessThanThisAmountOfChars);
+
+                foreach (MarkdownChunk chunk in chunks)
+                {
+                    chunk.SourcePath = file.PathWithoutRoot;
+                }
 
                 entries.AddRange(chunks.Select(x => new VectorEntity
                 {
                     Id = Guid.NewGuid().ToString(),
                     ContentKind = "Markdown",
-                    Content = $"{fileNameWithoutExtension} - {x.Name}{newLine}---{newLine}{x.Content}", //todo - support Content format builder
+                    Content = contentFormatBuilder.Invoke(x),
                     ContentId = x.ChunkId,
                     ContentName = x.Name,
                     SourceId = Id,
@@ -138,7 +158,7 @@ public class MarkdownDataSource : DataSourceFileBased
                     SourceCollectionId = CollectionId,
                     SourcePath = file.PathWithoutRoot,
                     ContentKind = "Markdown",
-                    Content = $"{fileNameWithoutExtension}{newLine}---{newLine}{content}", //todo - support Content format builder
+                    Content = $"{fileNameWithoutExtension}{newLine}---{newLine}{fileContent}", //todo - support Content format builder
                     ContentName = fileNameWithoutExtension,
                     ContentId = null,
                     ContentParent = null,

@@ -42,7 +42,7 @@ public class CSharpDataSource : DataSourceFileBased
     /// <summary>
     /// Builder of the desired format of the Content to be vectorized or leave null to use the default provided format
     /// </summary>
-    public Func<CSharpChunk, string>? CSharpContentFormatBuilder { get; set; }
+    public Func<CSharpChunk, string>? ContentFormatBuilder { get; set; }
 
     /// <summary>
     /// Ingest a C# Source
@@ -81,36 +81,36 @@ public class CSharpDataSource : DataSourceFileBased
 
         ingestionOptions?.ReportProgress($"{files.Length} Files was transformed into {codeEntities.Count} Code Entities for Vector Import. Preparing Embedding step...");
 
-        Func<CSharpChunk, string>? cSharpContentFormatBuilder = CSharpContentFormatBuilder;
-        if (cSharpContentFormatBuilder == null)
+        Func<CSharpChunk, string>? contentFormatBuilder = ContentFormatBuilder;
+        if (contentFormatBuilder == null)
         {
-            cSharpContentFormatBuilder = chunk =>
+            contentFormatBuilder = chunk =>
             {
-                StringBuilder sb = new();
+                StringBuilder contentBuilder = new();
                 string parentDetails = string.Empty;
                 if (!string.IsNullOrWhiteSpace(chunk.Parent))
                 {
                     parentDetails = $" parentKind=\"{chunk.ParentKindAsString}\" parent=\"{chunk.Parent}\"";
                 }
 
-                sb.AppendLine($"<code name=\"{chunk.Name}\" kind=\"{chunk.KindAsString}\" namespace=\"{chunk.Namespace}\"{parentDetails}>");
-                sb.AppendLine(chunk.XmlSummary + " " + chunk.Value);
+                contentBuilder.AppendLine($"<code name=\"{chunk.Name}\" kind=\"{chunk.KindAsString}\" namespace=\"{chunk.Namespace}\"{parentDetails}>");
+                contentBuilder.AppendLine(chunk.XmlSummary + " " + chunk.Value);
                 if (chunk.Dependencies.Count > 0)
                 {
-                    sb.AppendLine("<dependencies>");
-                    sb.AppendLine(string.Join(Environment.NewLine, chunk.Dependencies.Select(x => "- " + x)));
-                    sb.AppendLine("</dependencies>");
+                    contentBuilder.AppendLine("<dependencies>");
+                    contentBuilder.AppendLine(string.Join(Environment.NewLine, chunk.Dependencies.Select(x => "- " + x)));
+                    contentBuilder.AppendLine("</dependencies>");
                 }
 
                 if (chunk.References is { Count: > 0 })
                 {
-                    sb.AppendLine("<used_by>");
-                    sb.AppendLine(string.Join(Environment.NewLine, chunk.References.Select(x => "- " + x.Path)));
-                    sb.AppendLine("</used_by>");
+                    contentBuilder.AppendLine("<used_by>");
+                    contentBuilder.AppendLine(string.Join(Environment.NewLine, chunk.References.Select(x => "- " + x.Path)));
+                    contentBuilder.AppendLine("</used_by>");
                 }
 
-                sb.AppendLine("</code>");
-                return sb.ToString();
+                contentBuilder.AppendLine("</code>");
+                return contentBuilder.ToString();
             };
 
             //Creating References
@@ -145,7 +145,7 @@ public class CSharpDataSource : DataSourceFileBased
                 ContentDependencies = x.Dependencies.Count == 0 ? null : string.Join(";", x.Dependencies),
                 ContentReferences = x.References is { Count: 0 } ? null : string.Join(";", x.References?.Select(y => y.Path) ?? []),
                 ContentDescription = x.XmlSummary,
-                Content = cSharpContentFormatBuilder.Invoke(x),
+                Content = contentFormatBuilder.Invoke(x),
             });
 
             await _vectorStoreCommand.SyncAsync(this, vectorEntities, ingestionOptions?.OnProgressNotification, cancellationToken);

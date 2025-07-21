@@ -1,5 +1,13 @@
 # Changelog: SimpleRag
 
+## Unleareased
+- Renamed `CSharpContentFormatBuilder` to `ContentFormatBuilder` (the property is on a C# source so no need for the prefix)
+- `MarkdownChunk` and `PdfChunk` are now classes instead of records
+- Changed default content format of markdown
+- Added custom content formatters for Markdown and PDF content
+
+---
+
 ## Version 0.0.1-preview12 (19th of July 2025)
 - Breaking Change: Removed .AddSimpleRagWithGitHubIntegration (github credentails are now given directly to DataProvider to make it more simple to understand and allow different credentials to different sources)
 - Breaking Change: GitHubRepository is now a record

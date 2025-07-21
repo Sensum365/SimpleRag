@@ -1,10 +1,11 @@
-﻿using System.Text;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataProviders.Models;
+using SimpleRag.DataSources.CSharp.Chunker;
 using SimpleRag.DataSources.Pdf.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
+using System.Text;
 
 namespace SimpleRag.DataSources.Pdf;
 
@@ -38,6 +39,12 @@ public class PdfDataSource : DataSourceFileBased
     /// <summary>The source kind handled by this command.</summary>
     public const string SourceKind = "PDF";
 
+
+    /// <summary>
+    /// Builder of the desired format of the Content to be vectorized or leave null to use the default provided format
+    /// </summary>
+    public Func<PdfChunk, string>? ContentFormatBuilder { get; set; }
+
     /// <summary>
     /// Ingest the Datasource to the VectorStore
     /// </summary>
@@ -52,6 +59,20 @@ public class PdfDataSource : DataSourceFileBased
             return;
         }
 
+
+        var contentFormatBuilder = ContentFormatBuilder;
+        if (contentFormatBuilder == null)
+        {
+            contentFormatBuilder = chunk =>
+            {
+                StringBuilder contentBuilder = new();
+                contentBuilder.AppendLine($"<pdf_page page_number=\"{chunk.Page}\" total_pages=\"{chunk.TotalPages}\" file_name=\"{chunk.Name}\" source_path=\"{chunk.SourcePath}\">");
+                contentBuilder.AppendLine(chunk.Text);
+                contentBuilder.AppendLine("</pdf_page>");
+                return contentBuilder.ToString();
+            };
+        }
+
         List<VectorEntity> entities = [];
 
         int counter = 1;
@@ -60,32 +81,24 @@ public class PdfDataSource : DataSourceFileBased
             ingestionOptions?.ReportProgress("Reading documents", counter, files.Length, file.PathWithoutRoot);
             PdfChunk[] chunks = _chunker.GetChunks(file);
             counter++;
-            foreach (PdfChunk chunk in chunks)
+            entities.AddRange(chunks.Select(chunk => new VectorEntity
             {
-                StringBuilder content = new();
-                content.AppendLine($"<pdf_page page_number=\"{chunk.Page}\" total_pages=\"{chunk.TotalPages}\" file_name=\"{chunk.Filename}\" folder=\"{chunk.Folder}\">");
-                content.AppendLine(chunk.Text);
-                content.AppendLine("</pdf_page>");
-
-                entities.Add(new VectorEntity
-                {
-                    SourceCollectionId = CollectionId,
-                    SourceId = Id,
-                    Id = Guid.NewGuid().ToString(),
-                    Content = content.ToString(),
-                    ContentKind = "PDFPage",
-                    SourcePath = file.PathWithoutRoot,
-                    SourceKind = SourceKind,
-                    ContentId = null,
-                    ContentParent = null,
-                    ContentParentKind = null,
-                    ContentName = chunk.Filename + "_page" + chunk.Page,
-                    ContentDependencies = null,
-                    ContentDescription = null,
-                    ContentReferences = null,
-                    ContentNamespace = null,
-                });
-            }
+                SourceCollectionId = CollectionId,
+                SourceId = Id,
+                Id = Guid.NewGuid().ToString(),
+                Content = contentFormatBuilder.Invoke(chunk),
+                ContentKind = "PDFPage",
+                SourcePath = file.PathWithoutRoot,
+                SourceKind = SourceKind,
+                ContentId = null,
+                ContentParent = null,
+                ContentParentKind = null,
+                ContentName = chunk.Name + "_page" + chunk.Page,
+                ContentDependencies = null,
+                ContentDescription = null,
+                ContentReferences = null,
+                ContentNamespace = null,
+            }));
         }
 
         await _vectorStoreCommand.SyncAsync(this, entities, ingestionOptions?.OnProgressNotification, cancellationToken);
