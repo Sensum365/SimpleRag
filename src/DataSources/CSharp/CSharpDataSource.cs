@@ -13,8 +13,18 @@ namespace SimpleRag.DataSources.CSharp;
 [PublicAPI]
 public class CSharpDataSource : DataSourceFileBased
 {
+    /// <summary>
+    /// The sourceKind this command ingest
+    /// </summary>
+    public const string SourceKind = "CSharp";
+
     private readonly ICSharpChunker _chunker;
     private readonly IVectorStoreCommand _vectorStoreCommand;
+
+    /// <summary>
+    /// Options for the CSharpChunker
+    /// </summary>
+    public CSharpChunkerOptions? ChunkerOptions { get; set; }
 
     /// <summary>
     /// Represent a C# Based Datasource
@@ -33,11 +43,6 @@ public class CSharpDataSource : DataSourceFileBased
         _chunker = serviceProvider.GetRequiredService<ICSharpChunker>();
         _vectorStoreCommand = serviceProvider.GetRequiredService<IVectorStoreCommand>();
     }
-
-    /// <summary>
-    /// The sourceKind this command ingest
-    /// </summary>
-    public const string SourceKind = "CSharp";
 
     /// <summary>
     /// Builder of the desired format of the Content to be vectorized or leave null to use the default provided format
@@ -70,7 +75,7 @@ public class CSharpDataSource : DataSourceFileBased
                 continue;
             }
 
-            List<CSharpChunk> entitiesForFile = _chunker.GetChunks(content);
+            List<CSharpChunk> entitiesForFile = _chunker.GetChunks(content, ChunkerOptions);
             foreach (CSharpChunk codeEntity in entitiesForFile)
             {
                 codeEntity.SourcePath = file.PathWithoutRoot;

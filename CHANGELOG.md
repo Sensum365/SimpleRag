@@ -1,10 +1,11 @@
 # Changelog: SimpleRag
 
-## Unleareased
+## Version 0.0.2-preview1 (21st of July 2025)
 - Renamed `CSharpContentFormatBuilder` to `ContentFormatBuilder` (the property is on a C# source so no need for the prefix)
 - `MarkdownChunk` and `PdfChunk` are now classes instead of records
 - Changed default content format of markdown
 - Added custom content formatters for Markdown and PDF content
+- Added options for C# Datasource to include non-public members + to include member bodies
 
 ---
 

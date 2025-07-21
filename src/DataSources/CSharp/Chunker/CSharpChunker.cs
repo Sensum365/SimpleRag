@@ -16,23 +16,24 @@ public class CSharpChunker : ICSharpChunker
     /// Parses the provided code and returns the discovered code entities.
     /// </summary>
     /// <param name="code">The code to analyze.</param>
+    /// <param name="options">Options for the chunking of C#</param>
     /// <returns>A list of discovered code chunks.</returns>
-    public List<CSharpChunk> GetChunks(string code)
+    public List<CSharpChunk> GetChunks(string code, CSharpChunkerOptions? options = null)
     {
         SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
         var root = tree.GetRoot();
 
         List<CSharpChunk> entries = [];
-        entries.AddRange(ProcessTypeDeclaration<ClassDeclarationSyntax>(root, CSharpChunkKind.Class));
-        entries.AddRange(ProcessTypeDeclaration<StructDeclarationSyntax>(root, CSharpChunkKind.Struct));
-        entries.AddRange(ProcessTypeDeclaration<RecordDeclarationSyntax>(root, CSharpChunkKind.Record));
-        entries.AddRange(ProcessEnums(root));
-        entries.AddRange(ProcessDelegates(root));
-        entries.AddRange(ProcessInterfaces(root));
+        entries.AddRange(ProcessTypeDeclaration<ClassDeclarationSyntax>(root, CSharpChunkKind.Class, options));
+        entries.AddRange(ProcessTypeDeclaration<StructDeclarationSyntax>(root, CSharpChunkKind.Struct, options));
+        entries.AddRange(ProcessTypeDeclaration<RecordDeclarationSyntax>(root, CSharpChunkKind.Record, options));
+        entries.AddRange(ProcessEnums(root, options));
+        entries.AddRange(ProcessDelegates(root, options));
+        entries.AddRange(ProcessInterfaces(root, options));
         return entries;
     }
 
-    private List<CSharpChunk> ProcessInterfaces(SyntaxNode root)
+    private List<CSharpChunk> ProcessInterfaces(SyntaxNode root, CSharpChunkerOptions? options)
     {
         List<CSharpChunk> result = [];
         InterfaceDeclarationSyntax[] nodes = root.DescendantNodes()
@@ -40,7 +41,7 @@ public class CSharpChunker : ICSharpChunker
             .ToArray();
         foreach (InterfaceDeclarationSyntax node in nodes)
         {
-            if (!IsPublic(node.Modifiers))
+            if (!IncludeMember(node.Modifiers, options))
             {
                 continue;
             }
@@ -56,7 +57,7 @@ public class CSharpChunker : ICSharpChunker
         return result;
     }
 
-    private List<CSharpChunk> ProcessDelegates(SyntaxNode root)
+    private List<CSharpChunk> ProcessDelegates(SyntaxNode root, CSharpChunkerOptions? options)
     {
         List<CSharpChunk> result = [];
         DelegateDeclarationSyntax[] nodes = root.DescendantNodes()
@@ -65,7 +66,7 @@ public class CSharpChunker : ICSharpChunker
 
         foreach (DelegateDeclarationSyntax node in nodes)
         {
-            if (!IsPublic(node.Modifiers))
+            if (!IncludeMember(node.Modifiers, options))
             {
                 continue;
             }
@@ -81,13 +82,13 @@ public class CSharpChunker : ICSharpChunker
         return result;
     }
 
-    private List<CSharpChunk> ProcessEnums(SyntaxNode root)
+    private List<CSharpChunk> ProcessEnums(SyntaxNode root, CSharpChunkerOptions? options)
     {
         List<CSharpChunk> result = [];
         EnumDeclarationSyntax[] nodes = root.DescendantNodes().OfType<EnumDeclarationSyntax>().ToArray();
         foreach (EnumDeclarationSyntax node in nodes)
         {
-            if (!IsPublic(node.Modifiers))
+            if (!IncludeMember(node.Modifiers, options))
             {
                 continue;
             }
@@ -103,22 +104,22 @@ public class CSharpChunker : ICSharpChunker
         return result;
     }
 
-    private List<CSharpChunk> ProcessTypeDeclaration<T>(SyntaxNode root, CSharpChunkKind kind) where T : TypeDeclarationSyntax
+    private List<CSharpChunk> ProcessTypeDeclaration<T>(SyntaxNode root, CSharpChunkKind kind, CSharpChunkerOptions? options) where T : TypeDeclarationSyntax
     {
         List<CSharpChunk> result = [];
         var nodes = root.DescendantNodes().OfType<T>().ToArray();
         foreach (T node in nodes)
         {
-            if (!IsPublic(node.Modifiers))
+            if (!IncludeMember(node.Modifiers, options))
             {
                 continue;
             }
 
-            PropertyDeclarationSyntax[] properties = GetPublicProperties(node.Members);
-            MethodDeclarationSyntax[] methods = GetPublicMethods(node.Members);
-            FieldDeclarationSyntax[] constants = GetPublicConstants(node.Members);
-            ConversionOperatorDeclarationSyntax[] implicitOperators = GetPublicImplicitOperators(node.Members);
-            ConstructorDeclarationSyntax[] constructors = GetPublicConstructors(node.Members);
+            PropertyDeclarationSyntax[] properties = GetProperties(node.Members, options);
+            MethodDeclarationSyntax[] methods = GetMethods(node.Members, options);
+            FieldDeclarationSyntax[] constants = GetConstants(node.Members, options);
+            ConversionOperatorDeclarationSyntax[] implicitOperators = GetImplicitOperators(node.Members, options);
+            ConstructorDeclarationSyntax[] constructors = GetConstructors(node.Members, options);
 
             string ns = GetNamespace(node);
 
@@ -127,7 +128,17 @@ public class CSharpChunker : ICSharpChunker
             {
                 string name = method.Identifier.ValueText;
                 string xmlSummary = GetXmlSummary(method);
-                string content = method.ToString().Replace(method.Body?.ToString() ?? Guid.NewGuid().ToString(), "").Trim().Trim();
+                string content;
+                // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
+                if (options?.IncludeMemberBodies == true)
+                {
+                    content = method.ToString().Trim();
+                }
+                else
+                {
+                    content = method.ToString().Replace(method.Body?.ToString() ?? Guid.NewGuid().ToString(), "").Trim().Trim();
+                }
+
                 string parent = node.Identifier.ValueText;
                 CSharpChunkKind parentKind = kind;
                 List<string> dependencies = GetMethodDependencies(method);
@@ -139,7 +150,7 @@ public class CSharpChunker : ICSharpChunker
             {
                 string name = constructor.Identifier.ValueText;
                 string xmlSummary = GetXmlSummary(constructor);
-                ConstructorDeclarationSyntax content = constructor.WithBody(null);
+                ConstructorDeclarationSyntax content = options?.IncludeMemberBodies == true ? constructor : constructor.WithBody(null);
                 string parent = node.Identifier.ValueText;
                 CSharpChunkKind parentKind = kind;
                 var dependencies = constructor.ParameterList.Parameters.Select(x => x.Type?.ToString() ?? "unknown").ToList();
@@ -154,7 +165,8 @@ public class CSharpChunker : ICSharpChunker
                 List<string> dependencies = [];
                 StringBuilder sb = new();
 
-                sb.Append("public ");
+                sb.Append(options?.IncludeInternalAndPrivateMembers == true ? GetAccessModifier(node, options) : "public ");
+
                 if (IsStatic(node.Modifiers))
                 {
                     sb.Append("static ");
@@ -211,7 +223,17 @@ public class CSharpChunker : ICSharpChunker
                 {
                     string xmlSummary = GetXmlSummary(@operator);
                     sb.Append(xmlSummary);
-                    string value = @operator.ToString().Replace(@operator.Body?.ToString() ?? Guid.NewGuid().ToString(), "").Trim().Trim();
+                    string value;
+                    // ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
+                    if (options?.IncludeMemberBodies == true)
+                    {
+                        value = @operator.ToString().Trim();
+                    }
+                    else
+                    {
+                        value = @operator.ToString().Replace(@operator.Body?.ToString() ?? Guid.NewGuid().ToString(), "").Trim().Trim();
+                    }
+
                     sb.AppendLine(value);
                     sb.AppendLine();
                     dependencies.AddRange(@operator.ParameterList.Parameters.Select(x => x.Type?.ToString() ?? "unknown").ToList());
@@ -226,6 +248,41 @@ public class CSharpChunker : ICSharpChunker
         }
 
         return result;
+    }
+
+    private string GetAccessModifier<T>(T node, CSharpChunkerOptions options) where T : TypeDeclarationSyntax
+    {
+        if (node.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword)) && node.Modifiers.Any(m => m.IsKind(SyntaxKind.InternalKeyword)))
+        {
+            return "protected internal ";
+        }
+
+        if (node.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)) && node.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword)))
+        {
+            return "private protected ";
+        }
+
+        if (node.Modifiers.Any(m => m.IsKind(SyntaxKind.PublicKeyword)))
+        {
+            return "public ";
+        }
+
+        if (node.Modifiers.Any(m => m.IsKind(SyntaxKind.InternalKeyword)))
+        {
+            return "internal ";
+        }
+
+        if (node.Modifiers.Any(m => m.IsKind(SyntaxKind.PrivateKeyword)))
+        {
+            return "private ";
+        }
+
+        if (node.Modifiers.Any(m => m.IsKind(SyntaxKind.ProtectedKeyword)))
+        {
+            return "private ";
+        }
+
+        return string.Empty;
     }
 
     private static PropertyDeclarationSyntax RemoveExpressionBody(PropertyDeclarationSyntax property)
@@ -266,9 +323,10 @@ public class CSharpChunker : ICSharpChunker
         return "///" + xmlSummary;
     }
 
-    private static bool IsPublic(SyntaxTokenList modifiers)
+    private static bool IncludeMember(SyntaxTokenList modifiers, CSharpChunkerOptions? options)
     {
-        return modifiers.Any(m => m.IsKind(SyntaxKind.PublicKeyword));
+        bool isPublic = modifiers.Any(m => m.IsKind(SyntaxKind.PublicKeyword));
+        return options?.IncludeInternalAndPrivateMembers == true || isPublic;
     }
 
     private static bool IsConstant(SyntaxTokenList modifiers)
@@ -286,24 +344,24 @@ public class CSharpChunker : ICSharpChunker
         return modifiers.Any(m => m.IsKind(SyntaxKind.AbstractKeyword));
     }
 
-    private static PropertyDeclarationSyntax[] GetPublicProperties(SyntaxList<MemberDeclarationSyntax> members)
+    private static PropertyDeclarationSyntax[] GetProperties(SyntaxList<MemberDeclarationSyntax> members, CSharpChunkerOptions? options)
     {
-        return members.OfType<PropertyDeclarationSyntax>().Where(x => IsPublic(x.Modifiers)).ToArray();
+        return members.OfType<PropertyDeclarationSyntax>().Where(x => IncludeMember(x.Modifiers, options)).ToArray();
     }
 
-    private static FieldDeclarationSyntax[] GetPublicConstants(SyntaxList<MemberDeclarationSyntax> members)
+    private static FieldDeclarationSyntax[] GetConstants(SyntaxList<MemberDeclarationSyntax> members, CSharpChunkerOptions? options)
     {
-        return members.OfType<FieldDeclarationSyntax>().Where(x => IsPublic(x.Modifiers) && IsConstant(x.Modifiers)).ToArray();
+        return members.OfType<FieldDeclarationSyntax>().Where(x => IncludeMember(x.Modifiers, options) && IsConstant(x.Modifiers)).ToArray();
     }
 
-    private static ConstructorDeclarationSyntax[] GetPublicConstructors(SyntaxList<MemberDeclarationSyntax> members)
+    private static ConstructorDeclarationSyntax[] GetConstructors(SyntaxList<MemberDeclarationSyntax> members, CSharpChunkerOptions? options)
     {
-        return members.OfType<ConstructorDeclarationSyntax>().Where(x => IsPublic(x.Modifiers)).ToArray();
+        return members.OfType<ConstructorDeclarationSyntax>().Where(x => IncludeMember(x.Modifiers, options)).ToArray();
     }
 
-    private static MethodDeclarationSyntax[] GetPublicMethods(SyntaxList<MemberDeclarationSyntax> members)
+    private static MethodDeclarationSyntax[] GetMethods(SyntaxList<MemberDeclarationSyntax> members, CSharpChunkerOptions? options)
     {
-        return members.OfType<MethodDeclarationSyntax>().Where(x => IsPublic(x.Modifiers)).ToArray();
+        return members.OfType<MethodDeclarationSyntax>().Where(x => IncludeMember(x.Modifiers, options)).ToArray();
     }
 
     private static string GetNamespace(SyntaxNode node)
@@ -411,8 +469,8 @@ public class CSharpChunker : ICSharpChunker
         };
     }
 
-    private static ConversionOperatorDeclarationSyntax[] GetPublicImplicitOperators(SyntaxList<MemberDeclarationSyntax> members)
+    private static ConversionOperatorDeclarationSyntax[] GetImplicitOperators(SyntaxList<MemberDeclarationSyntax> members, CSharpChunkerOptions? options)
     {
-        return members.OfType<ConversionOperatorDeclarationSyntax>().Where(x => IsPublic(x.Modifiers)).ToArray();
+        return members.OfType<ConversionOperatorDeclarationSyntax>().Where(x => IncludeMember(x.Modifiers, options)).ToArray();
     }
 }
