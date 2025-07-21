@@ -1,4 +1,6 @@
-﻿namespace SimpleRag.DataSources.Pdf.Chunker;
+﻿using JetBrains.Annotations;
+
+namespace SimpleRag.DataSources.Pdf.Chunker;
 
 /// <summary>
 /// Represent a chunk of a PDF
@@ -7,6 +9,7 @@
 /// <param name="page">Page of the PDF</param>
 /// <param name="totalPages">Total Pages in the PDF</param>
 /// <param name="text">Raw Text of the PDF</param>
+[PublicAPI]
 public class PdfChunk(string name, int page, int totalPages, string text)
 {
     /// <summary>Name of the PDF</summary>
@@ -24,5 +27,5 @@ public class PdfChunk(string name, int page, int totalPages, string text)
     /// <summary>
     /// SourcePath ot the chunk
     /// </summary>
-    public string SourcePath { get; set; } = "";
+    public string SourcePath { get; init; } = "";
 }

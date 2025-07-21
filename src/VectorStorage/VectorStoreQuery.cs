@@ -1,12 +1,14 @@
-﻿using System.Linq.Expressions;
+﻿using JetBrains.Annotations;
 using Microsoft.Extensions.VectorData;
 using SimpleRag.VectorStorage.Models;
+using System.Linq.Expressions;
 
 namespace SimpleRag.VectorStorage;
 
 /// <summary>
 /// Provides query operations against the vector store.
 /// </summary>
+[PublicAPI]
 public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration vectorStoreConfiguration) : IVectorStoreQuery
 {
     private bool _creationEnsured;
@@ -23,7 +25,6 @@ public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration 
         _creationEnsured = true;
         return collection;
     }
-
 
     /// <summary>
     /// Searches the vector store.

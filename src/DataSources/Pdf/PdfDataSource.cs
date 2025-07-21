@@ -1,7 +1,6 @@
 ﻿using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataProviders.Models;
-using SimpleRag.DataSources.CSharp.Chunker;
 using SimpleRag.DataSources.Pdf.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
@@ -60,18 +59,14 @@ public class PdfDataSource : DataSourceFileBased
         }
 
 
-        var contentFormatBuilder = ContentFormatBuilder;
-        if (contentFormatBuilder == null)
+        var contentFormatBuilder = ContentFormatBuilder ?? (chunk =>
         {
-            contentFormatBuilder = chunk =>
-            {
-                StringBuilder contentBuilder = new();
-                contentBuilder.AppendLine($"<pdf_page page_number=\"{chunk.Page}\" total_pages=\"{chunk.TotalPages}\" file_name=\"{chunk.Name}\" source_path=\"{chunk.SourcePath}\">");
-                contentBuilder.AppendLine(chunk.Text);
-                contentBuilder.AppendLine("</pdf_page>");
-                return contentBuilder.ToString();
-            };
-        }
+            StringBuilder contentBuilder = new();
+            contentBuilder.AppendLine($"<pdf_page page_number=\"{chunk.Page}\" total_pages=\"{chunk.TotalPages}\" file_name=\"{chunk.Name}\" source_path=\"{chunk.SourcePath}\">");
+            contentBuilder.AppendLine(chunk.Text);
+            contentBuilder.AppendLine("</pdf_page>");
+            return contentBuilder.ToString();
+        });
 
         List<VectorEntity> entities = [];
 

@@ -1,8 +1,11 @@
+using JetBrains.Annotations;
+
 namespace SimpleRag.DataSources.CSharp.Chunker;
 
 /// <summary>
 /// Representation of a C# Chunker
 /// </summary>
+[PublicAPI]
 public interface ICSharpChunker
 {
     /// <summary>

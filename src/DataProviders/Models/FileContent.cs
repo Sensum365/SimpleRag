@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Text;
 
 namespace SimpleRag.DataProviders.Models;
@@ -8,6 +9,7 @@ namespace SimpleRag.DataProviders.Models;
 /// <param name="Path">The full path to the file.</param>
 /// <param name="Bytes">The file content.</param>
 /// <param name="PathWithoutRoot">The path relative to the configured root.</param>
+[PublicAPI]
 public record FileContent(string Path, byte[] Bytes, string PathWithoutRoot)
 {
     /// <summary>

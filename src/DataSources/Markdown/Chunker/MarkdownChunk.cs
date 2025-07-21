@@ -1,3 +1,5 @@
+using JetBrains.Annotations;
+
 namespace SimpleRag.DataSources.Markdown.Chunker;
 
 /// <summary>
@@ -6,6 +8,7 @@ namespace SimpleRag.DataSources.Markdown.Chunker;
 /// <param name="chunkId">Identifier of the chunk.</param>
 /// <param name="name">The display name of the chunk.</param>
 /// <param name="content">The chunk content.</param>
+[PublicAPI]
 public class MarkdownChunk(string chunkId, string name, string content)
 {
     /// <summary>

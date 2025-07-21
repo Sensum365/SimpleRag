@@ -1,11 +1,13 @@
-﻿using System.Text;
+﻿using JetBrains.Annotations;
 using Microsoft.Extensions.VectorData;
+using System.Text;
 
 namespace SimpleRag.VectorStorage.Models;
 
 /// <summary>
 /// Represents the result of a vector search.
 /// </summary>
+[PublicAPI]
 public class SearchResult
 {
     /// <summary>Gets or sets the returned entities.</summary>

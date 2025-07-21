@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System.Text.RegularExpressions;
 
 namespace SimpleRag.DataProviders.Models;
@@ -5,6 +6,7 @@ namespace SimpleRag.DataProviders.Models;
 /// <summary>
 /// Class describing a source of file content.
 /// </summary>
+[PublicAPI]
 public class FileContentSource
 {
     /// <summary>Gets or sets a value indicating whether directories are searched recursively.</summary>

@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using SimpleRag.DataProviders.Models;
 
 namespace SimpleRag.DataSources;
@@ -5,6 +6,7 @@ namespace SimpleRag.DataSources;
 /// <summary>
 /// Base class for all ingestible data sources.
 /// </summary>
+[PublicAPI]
 public abstract class DataSourceFileBased : IDataSource
 {
     /// <summary>

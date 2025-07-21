@@ -1,10 +1,12 @@
-﻿using SimpleRag.DataProviders.Models;
+﻿using JetBrains.Annotations;
+using SimpleRag.DataProviders.Models;
 
 namespace SimpleRag.DataSources.Pdf.Chunker;
 
 /// <summary>
 /// Represent an PDF Chunker that can break down a PDF File into smaller chunks
 /// </summary>
+[PublicAPI]
 public interface IPdfChunker
 {
     /// <summary>

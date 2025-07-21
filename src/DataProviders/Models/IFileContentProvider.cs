@@ -1,8 +1,11 @@
+using JetBrains.Annotations;
+
 namespace SimpleRag.DataProviders.Models;
 
 /// <summary>
 /// Interface for a sourceProvider
 /// </summary>
+[PublicAPI]
 public interface IFileContentProvider
 {
     /// <summary>

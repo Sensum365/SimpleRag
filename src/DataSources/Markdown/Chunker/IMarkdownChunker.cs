@@ -1,8 +1,11 @@
+using JetBrains.Annotations;
+
 namespace SimpleRag.DataSources.Markdown.Chunker;
 
 /// <summary>
 /// Represent a MarkdownChunker
 /// </summary>
+[PublicAPI]
 public interface IMarkdownChunker
 {
     /// <summary>

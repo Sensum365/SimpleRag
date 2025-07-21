@@ -2,7 +2,6 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataProviders.Models;
-using SimpleRag.DataSources.CSharp.Chunker;
 using SimpleRag.DataSources.Markdown.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
@@ -80,7 +79,7 @@ public class MarkdownDataSource : DataSourceFileBased
         }
 
         var newLine = Environment.NewLine;
-        Func<MarkdownChunk, string>? contentFormatBuilder = ContentFormatBuilder ?? (chunk =>
+        Func<MarkdownChunk, string> contentFormatBuilder = ContentFormatBuilder ?? (chunk =>
         {
             StringBuilder contentBuilder = new();
             contentBuilder.AppendLine($"<markdown name=\"{chunk.Name}\" source=\"{System.IO.Path.GetFileNameWithoutExtension(chunk.SourcePath)}\">");

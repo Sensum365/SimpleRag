@@ -1,11 +1,13 @@
-﻿using System.Linq.Expressions;
+﻿using JetBrains.Annotations;
 using SimpleRag.VectorStorage.Models;
+using System.Linq.Expressions;
 
 namespace SimpleRag.VectorStorage;
 
 /// <summary>
 /// Represent a VectorStoreQuery
 /// </summary>
+[PublicAPI]
 public interface IVectorStoreQuery
 {
     /// <summary>

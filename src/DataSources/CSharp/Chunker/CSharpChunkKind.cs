@@ -1,8 +1,11 @@
+using JetBrains.Annotations;
+
 namespace SimpleRag.DataSources.CSharp.Chunker;
 
 /// <summary>
 /// Represents the kind of C# code element.
 /// </summary>
+[PublicAPI]
 public enum CSharpChunkKind
 {
     /// <summary>No specific kind.</summary>

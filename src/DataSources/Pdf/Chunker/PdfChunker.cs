@@ -1,4 +1,5 @@
-﻿using SimpleRag.DataProviders.Models;
+﻿using JetBrains.Annotations;
+using SimpleRag.DataProviders.Models;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.Content;
 
@@ -7,6 +8,7 @@ namespace SimpleRag.DataSources.Pdf.Chunker;
 /// <summary>
 /// PDF Chunker that can break down a PDF File into smaller chunks
 /// </summary>
+[PublicAPI]
 public class PdfChunker : IPdfChunker
 {
     /// <summary>

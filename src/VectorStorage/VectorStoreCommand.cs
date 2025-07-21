@@ -61,7 +61,6 @@ public class VectorStoreCommand(VectorStore vectorStore, IVectorStoreQuery vecto
         }
     }
 
-
     /// <summary>
     /// Deletes all entities matching the filter.
     /// </summary>

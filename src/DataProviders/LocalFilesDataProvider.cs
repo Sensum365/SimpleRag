@@ -1,10 +1,12 @@
-﻿using SimpleRag.DataProviders.Models;
+﻿using JetBrains.Annotations;
+using SimpleRag.DataProviders.Models;
 
 namespace SimpleRag.DataProviders;
 
 /// <summary>
 /// A SourceProvider representing files on a local disk
 /// </summary>
+[PublicAPI]
 public class LocalFilesDataProvider : IFileContentProvider
 {
     /// <summary>
