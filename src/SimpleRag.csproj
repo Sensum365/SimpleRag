@@ -25,6 +25,7 @@
 	<PropertyGroup>
 		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<PackageIcon>SimpleRag_nuget.png</PackageIcon>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
@@ -35,6 +36,10 @@
 
 	<ItemGroup>
 		<None Include="..\CHANGELOG.md" Link="CHANGELOG.md" />
+		<None Include="..\Images\SimpleRag_nuget.png">
+		  <Pack>True</Pack>
+		  <PackagePath>\</PackagePath>
+		</None>
 		<None Include="..\README.md" Link="README.md">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
