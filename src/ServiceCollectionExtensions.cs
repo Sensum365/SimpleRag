@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataSources.CSharp.Chunker;
 using SimpleRag.DataSources.Markdown.Chunker;
 using SimpleRag.DataSources.Pdf.Chunker;
+using SimpleRag.DataSources.PowerPoint.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
 
@@ -33,6 +34,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICSharpChunker, CSharpChunker>();
         services.AddScoped<IMarkdownChunker, MarkdownChunker>();
         services.AddScoped<IPdfChunker, PdfChunker>();
+        services.AddScoped<IPowerPointChunker, PowerPointChunker>();
         services.AddScoped<Ingestion>();
         services.AddScoped<Search>();
         services.AddScoped<DataManagement>();
