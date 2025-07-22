@@ -3,6 +3,7 @@
 ## Unreleased
 - Upgraded all nuget packages
 - Add first crude version of a PowerPoint Datasource
+- Add datasource for Word documents
 
 ---
 
