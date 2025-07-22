@@ -28,14 +28,17 @@ string embeddingDeploymentName = builder.Configuration["AiEmbeddingDeploymentNam
 string sqlServerConnectionString = builder.Configuration["SqlServerConnectionString"]!;
 string githubToken = builder.Configuration["GitHubToken"]!;
 
+//Setup Github Credentials
+builder.Services.AddSingleton(new GitHubCredentials(githubToken));
+
 //Setup Embedding Generator
 builder.Services.AddAzureOpenAIEmbeddingGenerator(embeddingDeploymentName, endpoint, key);
 
 //Setup SimpleRag (use .AddSimpleRag(...) instead if you do not wish to use GitHub as Datasource)
-builder.Services.AddSimpleRagWithGitHubIntegration(new VectorStoreConfiguration(Constants.VectorStoreName, Constants.MaxRecords), options => new SqlServerVectorStore(sqlServerConnectionString, new SqlServerVectorStoreOptions
+builder.Services.AddSimpleRag(vectorStoreConfiguration, options => new SqlServerVectorStore(sqlServerConnectionString, new SqlServerVectorStoreOptions
 {
     EmbeddingGenerator = options.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>()
-}), githubToken);
+}));
 ```
 
 ### Step 3: Ingest Data into your VectorStore (in this sample the [TrelloDotNet](https://github.com/rwjdk/TrelloDotNet) open-source repo)
@@ -100,4 +103,5 @@ public class SearchExample(Search search)
 ```
 
 ## Legal Stuff
-- PDF Extraction is do with Nuget Package [PDFPig](https://github.com/UglyToad/PdfPig/blob/master/LICENSE) (Apache 2.0 License)
+- PDF Extraction is done with Nuget Package [PDFPig](https://github.com/UglyToad/PdfPig/blob/master/LICENSE) (Apache 2.0 License)
+- Retry Logic is provided by Nuget Package [Polly](https://github.com/App-vNext/Polly/blob/main/LICENSE) (BSD-3)

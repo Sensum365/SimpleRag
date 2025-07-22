@@ -27,10 +27,10 @@
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-	  <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-	  <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -50,9 +50,9 @@
 		<PackageReference Include="Polly" Version="8.6.2" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.14.0" />
-                <PackageReference Include="Octokit" Version="14.0.0" />
-                <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.0" />
-                <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
-        </ItemGroup>
+		<PackageReference Include="Octokit" Version="14.0.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.0" />
+		<PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
+	</ItemGroup>
 
 </Project>
