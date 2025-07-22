@@ -1,5 +1,11 @@
 # Changelog: SimpleRag
 
+## Unreleased
+- Upgraded all nuget packages
+- Add first crude version of a PowerPoint Datasource
+
+---
+
 ## Version 0.0.2-preview1 (21st of July 2025)
 - Renamed `CSharpContentFormatBuilder` to `ContentFormatBuilder` (the property is on a C# source so no need for the prefix)
 - `MarkdownChunk` and `PdfChunk` are now classes instead of records
