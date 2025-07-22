@@ -28,13 +28,13 @@ string embeddingDeploymentName = builder.Configuration["AiEmbeddingDeploymentNam
 string sqlServerConnectionString = builder.Configuration["SqlServerConnectionString"]!;
 string githubToken = builder.Configuration["GitHubToken"]!;
 
-//Setup Github Credentials
+//Setup Github Credentials (optional, but needed if you wish to RAG data directly from GitHub)
 builder.Services.AddSingleton(new GitHubCredentials(githubToken));
 
 //Setup Embedding Generator
 builder.Services.AddAzureOpenAIEmbeddingGenerator(embeddingDeploymentName, endpoint, key);
 
-//Setup SimpleRag (use .AddSimpleRag(...) instead if you do not wish to use GitHub as Datasource)
+//Setup SimpleRag
 builder.Services.AddSimpleRag(vectorStoreConfiguration, options => new SqlServerVectorStore(sqlServerConnectionString, new SqlServerVectorStoreOptions
 {
     EmbeddingGenerator = options.GetRequiredService<IEmbeddingGenerator<string, Embedding<float>>>()
