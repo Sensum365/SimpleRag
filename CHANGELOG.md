@@ -1,9 +1,9 @@
 # Changelog: SimpleRag
 
-## Unreleased
+## Version 0.0.2-preview2 (22nd of July 2025)
 - Upgraded all nuget packages
-- Add first crude version of a PowerPoint Datasource
-- Add datasource for Word documents
+- Add first crude version of a PowerPoint Datasource (1 Slide = 1 Vector Entity)
+- Add first crude version of a MS Word Datasource (1 Paragraph = 1 Vector Entity)
 
 ---
 
