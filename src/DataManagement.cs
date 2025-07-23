@@ -1,23 +1,62 @@
 ﻿using JetBrains.Annotations;
+using SimpleRag.DataSources;
 using SimpleRag.VectorStorage;
+using SimpleRag.VectorStorage.Models;
+using System.Linq.Expressions;
 
 namespace SimpleRag;
 
 /// <summary>
 /// Do Data Management on existing DataSources
 /// </summary>
-/// <param name="vectorStoreCommand"></param>
 [PublicAPI]
-public class DataManagement(IVectorStoreCommand vectorStoreCommand)
+public class DataManagement(IVectorStoreCommand vectorStoreCommand, IVectorStoreQuery vectorStoreQuery)
 {
+    /// <summary>
+    /// Get everything in a specific Datasource
+    /// </summary>
+    /// <param name="collectionId">The id of the collection the source is in</param>
+    /// <param name="sourceId">The id of the source to delete</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    public async Task GetDataAsync(CollectionId collectionId, SourceId sourceId, CancellationToken cancellationToken = default)
+    {
+        string collectionIdAsString = collectionId.Value;
+        string sourceIdAsString = sourceId.Value;
+        await vectorStoreQuery.GetExistingAsync(entity => entity.SourceCollectionId == collectionIdAsString && entity.SourceId == sourceIdAsString, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get everything in a specific Datasource Collection (aka every datasource that have the same CollectionId)
+    /// </summary>
+    /// <param name="collectionId">The CollectionId</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    public async Task GetDataAsync(CollectionId collectionId, CancellationToken cancellationToken = default)
+    {
+        string collectionIdAsString = collectionId.Value;
+        await vectorStoreQuery.GetExistingAsync(entity => entity.SourceCollectionId == collectionIdAsString, cancellationToken);
+    }
+
+    /// <summary>
+    /// Get everything that match the filter
+    /// </summary>
+    /// <param name="filter">The filter for the data to get</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    public async Task GetDataAsync(Expression<Func<VectorEntity, bool>>? filter, CancellationToken cancellationToken = default)
+    {
+        await vectorStoreQuery.GetExistingAsync(filter, cancellationToken);
+    }
+
     /// <summary>
     /// Delete everything in a specific Datasource
     /// </summary>
-    /// <param name="id">Id of the DataSource</param>
+    /// <param name="collectionId">The id of the collection the source is in</param>
+    /// <param name="sourceId">The id of the source to delete</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task DeleteSourceDataAsync(string id, CancellationToken cancellationToken = default)
+    public async Task DeleteSourceDataAsync(CollectionId collectionId, SourceId sourceId, CancellationToken cancellationToken = default)
     {
-        await vectorStoreCommand.DeleteAsync(entity => entity.SourceId == id, cancellationToken);
+        string collectionIdAsString = collectionId.Value;
+        string sourceIdAsString = sourceId.Value;
+        await vectorStoreCommand.DeleteAsync(entity => entity.SourceCollectionId == collectionIdAsString && entity.SourceId == sourceIdAsString, cancellationToken);
     }
 
     /// <summary>
@@ -25,8 +64,9 @@ public class DataManagement(IVectorStoreCommand vectorStoreCommand)
     /// </summary>
     /// <param name="collectionId">The CollectionId</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task DeleteCollectionDataAsync(string collectionId, CancellationToken cancellationToken = default)
+    public async Task DeleteCollectionDataAsync(CollectionId collectionId, CancellationToken cancellationToken = default)
     {
-        await vectorStoreCommand.DeleteAsync(entity => entity.SourceCollectionId == collectionId, cancellationToken);
+        string collectionIdAsString = collectionId.Value;
+        await vectorStoreCommand.DeleteAsync(entity => entity.SourceCollectionId == collectionIdAsString, cancellationToken);
     }
 }

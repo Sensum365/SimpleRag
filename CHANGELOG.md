@@ -1,5 +1,13 @@
 # Changelog: SimpleRag
 
+## Version 0.0.2-preview3 (23rd of July 2025)
+- Breaking change CollectionId and SourceId are now strongly typed IDs to make it impossible to confuse the various IDs (NB: Still strings in VectorEntity as VectorStores can't store strongly typed Ids)
+- Breaking Change: Added more SearchAsync overloads and made the original use SearachOptionsAdvanced
+- Breaking Change: DataSourceKind is now an enum (NB: Still strings in VectorEntity as not all VectorStores support enums)
+- DataManagement now have GetData methods
+
+---
+
 ## Version 0.0.2-preview2 (22nd of July 2025)
 - Upgraded all nuget packages
 - Add first crude version of a PowerPoint Datasource (1 Slide = 1 Vector Entity)
@@ -8,7 +16,7 @@
 ---
 
 ## Version 0.0.2-preview1 (21st of July 2025)
-- Renamed `CSharpContentFormatBuilder` to `ContentFormatBuilder` (the property is on a C# source so no need for the prefix)
+- Breaking Change: Renamed `CSharpContentFormatBuilder` to `ContentFormatBuilder` (the property is on a C# source so no need for the prefix)
 - `MarkdownChunk` and `PdfChunk` are now classes instead of records
 - Changed default content format of markdown
 - Added custom content formatters for Markdown and PDF content

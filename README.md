@@ -47,6 +47,7 @@ public class IngestionExample(Ingestion ingestion, IServiceProvider serviceProvi
 {
     public async Task Sync()
     {
+        CollectionId collectionId = new("TrelloDotNet");
         DataSourceProviderGitHub filesProvider = new(serviceProvider)
         {
             GitHubRepository = new()
@@ -60,8 +61,8 @@ public class IngestionExample(Ingestion ingestion, IServiceProvider serviceProvi
         [
             new CSharpDataSource(serviceProvider)
             {
-                CollectionId = VectorStoreIds.CollectionId,
-                Id = VectorStoreIds.SourceIdCode,
+                CollectionId = collectionId,
+                Id = new SourceId("Code"),
                 Recursive = true,
                 Path = "src",
                 FileIgnorePatterns = "TrelloDotNet.Tests",
@@ -69,8 +70,8 @@ public class IngestionExample(Ingestion ingestion, IServiceProvider serviceProvi
             },
             new MarkdownDataSource(serviceProvider)
             {
-                CollectionId = VectorStoreIds.CollectionId,
-                Id = VectorStoreIds.SourceIdMarkdownInCode,
+                CollectionId = collectionId,
+                Id = new SourceId("Markdown"),
                 Recursive = true,
                 Path = "/",
                 FilesProvider = filesProvider
@@ -92,9 +93,9 @@ public class SearchExample(Search search)
     {
         SearchResult searchResult = await search.SearchAsync(new SearchOptions
         {
+            CollectionId = new CollectionId("TrelloDotNet"),
             SearchQuery = searchQuery,
-            NumberOfRecordsBack = 10,
-            Filter = entity => entity.SourceCollectionId == VectorStoreIds.CollectionId
+            NumberOfRecordsBack = 10
         });
         
         return searchResult.GetAsStringResult();

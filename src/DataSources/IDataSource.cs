@@ -11,12 +11,12 @@ public interface IDataSource
     /// <summary>
     /// Gets or sets the identifier of the collection.
     /// </summary>
-    string CollectionId { get; init; }
+    CollectionId CollectionId { get; init; }
 
     /// <summary>
     /// Gets or sets the unique identifier of the source.
     /// </summary>
-    string Id { get; init; }
+    SourceId Id { get; init; }
 
     /// <summary>
     /// Ingest the Datasource to the VectorStore

@@ -1,6 +1,5 @@
 ﻿using JetBrains.Annotations;
-using SimpleRag.VectorStorage.Models;
-using System.Linq.Expressions;
+using SimpleRag.DataSources;
 
 namespace SimpleRag;
 
@@ -10,12 +9,28 @@ namespace SimpleRag;
 [PublicAPI]
 public class SearchOptions
 {
-    /// <summary>Gets or sets the query to search for.</summary>
+    /// <summary>
+    /// Gets or sets the query to search for.
+    /// </summary>
     public required string SearchQuery { get; set; }
 
-    /// <summary>Gets or sets the number of records to return.</summary>
+    /// <summary>
+    /// Gets or sets the number of records to return.
+    /// </summary>
     public required int NumberOfRecordsBack { get; set; }
 
-    /// <summary>Gets or sets an optional filter for the search.</summary>
-    public Expression<Func<VectorEntity, bool>>? Filter { get; set; }
+    /// <summary>
+    /// Id of the collection
+    /// </summary>
+    public required CollectionId CollectionId { get; set; }
+
+    /// <summary>
+    /// Id of the source (optional)
+    /// </summary>
+    public SourceId? SourceId { get; set; }
+
+    /// <summary>
+    /// Kind option the source (optional)
+    /// </summary>
+    public DataSourceKind? SourceKind { get; set; }
 }

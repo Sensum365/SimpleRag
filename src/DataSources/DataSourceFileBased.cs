@@ -12,12 +12,12 @@ public abstract class DataSourceFileBased : IDataSource
     /// <summary>
     /// Gets or sets the identifier of the collection.
     /// </summary>
-    public required string CollectionId { get; init; }
+    public required CollectionId CollectionId { get; init; }
 
     /// <summary>
     /// Gets or sets the unique identifier of the source.
     /// </summary>
-    public required string Id { get; init; }
+    public required SourceId Id { get; init; }
 
     /// <summary>
     /// Gets or sets a value indicating whether subdirectories are scanned.

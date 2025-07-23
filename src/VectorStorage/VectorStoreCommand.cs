@@ -97,7 +97,7 @@ public class VectorStoreCommand(VectorStore vectorStore, IVectorStoreQuery vecto
     /// <param name="cancellationToken">CancellationToken</param>
     public async Task SyncAsync(IDataSource dataSource, IEnumerable<VectorEntity> vectorEntities, Action<Notification>? onProgressNotification = null, CancellationToken cancellationToken = default)
     {
-        VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == dataSource.CollectionId && x.SourceId == dataSource.Id, cancellationToken);
+        VectorEntity[] existingData = await vectorStoreQuery.GetExistingAsync(x => x.SourceCollectionId == dataSource.CollectionId.Value && x.SourceId == dataSource.Id.Value, cancellationToken);
 
         int counter = 0;
         List<string> idsToKeep = [];

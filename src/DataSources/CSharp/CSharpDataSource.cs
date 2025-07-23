@@ -13,11 +13,6 @@ namespace SimpleRag.DataSources.CSharp;
 [PublicAPI]
 public class CSharpDataSource : DataSourceFileBased
 {
-    /// <summary>
-    /// The sourceKind this command ingest
-    /// </summary>
-    public const string SourceKind = "CSharp";
-
     private readonly ICSharpChunker _chunker;
     private readonly IVectorStoreCommand _vectorStoreCommand;
 
@@ -137,10 +132,10 @@ public class CSharpDataSource : DataSourceFileBased
             IEnumerable<VectorEntity> vectorEntities = codeEntities.Select(x => new VectorEntity
             {
                 Id = Guid.NewGuid().ToString(),
-                SourceId = Id,
+                SourceId = Id.Value,
                 ContentId = null,
-                SourceCollectionId = CollectionId,
-                SourceKind = SourceKind,
+                SourceCollectionId = CollectionId.Value,
+                SourceKind = nameof(DataSourceKind.CSharp),
                 SourcePath = x.SourcePath,
                 ContentKind = x.KindAsString,
                 ContentParent = x.Parent,

@@ -36,9 +36,6 @@ public class MarkdownDataSource : DataSourceFileBased
         _vectorStoreCommand = serviceProvider.GetRequiredService<IVectorStoreCommand>();
     }
 
-    /// <summary>The source kind handled by this command.</summary>
-    public const string SourceKind = "Markdown";
-
     /// <summary>Gets or sets a value indicating whether HTML comments should be ignored.</summary>
     public bool IgnoreCommentedOutContent { get; init; } = true;
 
@@ -135,9 +132,9 @@ public class MarkdownDataSource : DataSourceFileBased
                     Content = contentFormatBuilder.Invoke(x),
                     ContentId = x.ChunkId,
                     ContentName = x.Name,
-                    SourceId = Id,
-                    SourceKind = SourceKind,
-                    SourceCollectionId = CollectionId,
+                    SourceId = Id.Value,
+                    SourceKind = nameof(DataSourceKind.Markdown),
+                    SourceCollectionId = CollectionId.Value,
                     SourcePath = file.PathWithoutRoot,
                     ContentParent = null,
                     ContentParentKind = null,
@@ -152,9 +149,9 @@ public class MarkdownDataSource : DataSourceFileBased
                 entries.Add(new VectorEntity
                 {
                     Id = Guid.NewGuid().ToString(),
-                    SourceId = Id,
-                    SourceKind = SourceKind,
-                    SourceCollectionId = CollectionId,
+                    SourceId = Id.Value,
+                    SourceKind = nameof(DataSourceKind.Markdown),
+                    SourceCollectionId = CollectionId.Value,
                     SourcePath = file.PathWithoutRoot,
                     ContentKind = "Markdown",
                     Content = $"{fileNameWithoutExtension}{newLine}---{newLine}{fileContent}", //todo - support Content format builder

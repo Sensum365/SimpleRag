@@ -35,9 +35,6 @@ public class WordDataSource : DataSourceFileBased
         _vectorStoreCommand = vectorStoreCommand;
     }
 
-    /// <summary>The source kind handled by this command.</summary>
-    public const string SourceKind = "Word";
-
     /// <summary>
     /// Builder of the desired format of the content to be vectorized or leave null to use the default provided format
     /// </summary>
@@ -75,13 +72,13 @@ public class WordDataSource : DataSourceFileBased
             counter++;
             entities.AddRange(chunks.Select(chunk => new VectorEntity
             {
-                SourceCollectionId = CollectionId,
-                SourceId = Id,
+                SourceCollectionId = CollectionId.Value,
+                SourceId = Id.Value,
                 Id = Guid.NewGuid().ToString(),
                 Content = contentFormatBuilder.Invoke(chunk),
                 ContentKind = "WordParagraph",
                 SourcePath = file.PathWithoutRoot,
-                SourceKind = SourceKind,
+                SourceKind = nameof(DataSourceKind.Word),
                 ContentId = null,
                 ContentParent = null,
                 ContentParentKind = null,
