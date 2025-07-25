@@ -1,5 +1,10 @@
 # Changelog: SimpleRag
 
+## Version 0.0.2-preview4 (25th of July)
+- Fixed the DataManagement.GetData did actually not return the data
+
+---
+
 ## Version 0.0.2-preview3 (23rd of July 2025)
 - Breaking change CollectionId and SourceId are now strongly typed IDs to make it impossible to confuse the various IDs (NB: Still strings in VectorEntity as VectorStores can't store strongly typed Ids)
 - Breaking Change: Added more SearchAsync overloads and made the original use SearachOptionsAdvanced

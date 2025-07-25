@@ -18,11 +18,11 @@ public class DataManagement(IVectorStoreCommand vectorStoreCommand, IVectorStore
     /// <param name="collectionId">The id of the collection the source is in</param>
     /// <param name="sourceId">The id of the source to delete</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task GetDataAsync(CollectionId collectionId, SourceId sourceId, CancellationToken cancellationToken = default)
+    public async Task<VectorEntity[]> GetDataAsync(CollectionId collectionId, SourceId sourceId, CancellationToken cancellationToken = default)
     {
         string collectionIdAsString = collectionId.Value;
         string sourceIdAsString = sourceId.Value;
-        await vectorStoreQuery.GetExistingAsync(entity => entity.SourceCollectionId == collectionIdAsString && entity.SourceId == sourceIdAsString, cancellationToken);
+        return await vectorStoreQuery.GetExistingAsync(entity => entity.SourceCollectionId == collectionIdAsString && entity.SourceId == sourceIdAsString, cancellationToken);
     }
 
     /// <summary>
@@ -30,10 +30,10 @@ public class DataManagement(IVectorStoreCommand vectorStoreCommand, IVectorStore
     /// </summary>
     /// <param name="collectionId">The CollectionId</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task GetDataAsync(CollectionId collectionId, CancellationToken cancellationToken = default)
+    public async Task<VectorEntity[]> GetDataAsync(CollectionId collectionId, CancellationToken cancellationToken = default)
     {
         string collectionIdAsString = collectionId.Value;
-        await vectorStoreQuery.GetExistingAsync(entity => entity.SourceCollectionId == collectionIdAsString, cancellationToken);
+        return await vectorStoreQuery.GetExistingAsync(entity => entity.SourceCollectionId == collectionIdAsString, cancellationToken);
     }
 
     /// <summary>
@@ -41,9 +41,9 @@ public class DataManagement(IVectorStoreCommand vectorStoreCommand, IVectorStore
     /// </summary>
     /// <param name="filter">The filter for the data to get</param>
     /// <param name="cancellationToken">CancellationToken</param>
-    public async Task GetDataAsync(Expression<Func<VectorEntity, bool>>? filter, CancellationToken cancellationToken = default)
+    public async Task<VectorEntity[]> GetDataAsync(Expression<Func<VectorEntity, bool>>? filter, CancellationToken cancellationToken = default)
     {
-        await vectorStoreQuery.GetExistingAsync(filter, cancellationToken);
+        return await vectorStoreQuery.GetExistingAsync(filter, cancellationToken);
     }
 
     /// <summary>
