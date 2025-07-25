@@ -135,7 +135,7 @@ public class CSharpDataSource : DataSourceFileBased
                 SourceId = Id.Value,
                 ContentId = null,
                 SourceCollectionId = CollectionId.Value,
-                SourceKind = nameof(DataSourceKind.CSharp),
+                SourceKind = DataSourceKinds.CSharp,
                 SourcePath = x.SourcePath,
                 ContentKind = x.KindAsString,
                 ContentParent = x.Parent,

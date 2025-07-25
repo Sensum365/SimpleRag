@@ -25,13 +25,13 @@ public class Search(IVectorStoreQuery vectorStoreQuery)
             case { SourceKind: not null, SourceId: not null }:
             {
                 string sourceIdAsString = options.SourceId.Value.Value;
-                string sourceKindAsString = options.SourceKind.Value.ToString();
+                string sourceKindAsString = options.SourceKind;
                 filter = x => x.SourceCollectionId == collectionIdAsString && x.SourceKind == sourceKindAsString && x.SourceId == sourceIdAsString;
                 break;
             }
             case { SourceKind: not null }:
             {
-                string sourceKindAsString = options.SourceKind.Value.ToString();
+                string sourceKindAsString = options.SourceKind;
                 filter = x => x.SourceCollectionId == collectionIdAsString && x.SourceKind == sourceKindAsString;
                 break;
             }

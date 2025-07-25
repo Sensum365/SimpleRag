@@ -133,7 +133,7 @@ public class MarkdownDataSource : DataSourceFileBased
                     ContentId = x.ChunkId,
                     ContentName = x.Name,
                     SourceId = Id.Value,
-                    SourceKind = nameof(DataSourceKind.Markdown),
+                    SourceKind = DataSourceKinds.Markdown,
                     SourceCollectionId = CollectionId.Value,
                     SourcePath = file.PathWithoutRoot,
                     ContentParent = null,
@@ -150,7 +150,7 @@ public class MarkdownDataSource : DataSourceFileBased
                 {
                     Id = Guid.NewGuid().ToString(),
                     SourceId = Id.Value,
-                    SourceKind = nameof(DataSourceKind.Markdown),
+                    SourceKind = DataSourceKinds.Markdown,
                     SourceCollectionId = CollectionId.Value,
                     SourcePath = file.PathWithoutRoot,
                     ContentKind = "Markdown",

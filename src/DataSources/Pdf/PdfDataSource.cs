@@ -80,7 +80,7 @@ public class PdfDataSource : DataSourceFileBased
                 Content = contentFormatBuilder.Invoke(chunk),
                 ContentKind = "PDFPage",
                 SourcePath = file.PathWithoutRoot,
-                SourceKind = nameof(DataSourceKind.Pdf),
+                SourceKind = DataSourceKinds.Pdf,
                 ContentId = null,
                 ContentParent = null,
                 ContentParentKind = null,

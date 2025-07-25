@@ -1,32 +1,32 @@
 ﻿namespace SimpleRag.DataSources;
 
 /// <summary>
-/// The Kind of Source
+/// The various Datasource Kinds
 /// </summary>
-public enum DataSourceKind
+public static class DataSourceKinds
 {
     /// <summary>
     /// C#
     /// </summary>
-    CSharp = 1,
+    public const string CSharp = "CSharp";
 
     /// <summary>
     /// Markdown
     /// </summary>
-    Markdown = 2,
+    public const string Markdown = "Markdown";
 
     /// <summary>
     /// PDF
     /// </summary>
-    Pdf = 3,
+    public const string Pdf = "Pdf";
 
     /// <summary>
     /// Microsoft Word
     /// </summary>
-    Word = 4,
+    public const string Word = "Word";
 
     /// <summary>
     /// Microsoft PowerPoint
     /// </summary>
-    PowerPoint = 5,
+    public const string PowerPoint = "PowerPoint";
 }

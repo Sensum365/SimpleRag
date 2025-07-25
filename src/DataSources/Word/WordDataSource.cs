@@ -78,7 +78,7 @@ public class WordDataSource : DataSourceFileBased
                 Content = contentFormatBuilder.Invoke(chunk),
                 ContentKind = "WordParagraph",
                 SourcePath = file.PathWithoutRoot,
-                SourceKind = nameof(DataSourceKind.Word),
+                SourceKind = DataSourceKinds.Word,
                 ContentId = null,
                 ContentParent = null,
                 ContentParentKind = null,

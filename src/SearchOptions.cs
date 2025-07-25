@@ -32,5 +32,5 @@ public class SearchOptions
     /// <summary>
     /// Kind option the source (optional)
     /// </summary>
-    public DataSourceKind? SourceKind { get; set; }
+    public string? SourceKind { get; set; }
 }

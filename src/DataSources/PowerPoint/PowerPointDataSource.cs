@@ -78,7 +78,7 @@ public class PowerPointDataSource : DataSourceFileBased
                 Content = contentFormatBuilder.Invoke(chunk),
                 ContentKind = "PowerPointSlide",
                 SourcePath = file.PathWithoutRoot,
-                SourceKind = nameof(DataSourceKind.PowerPoint),
+                SourceKind = DataSourceKinds.PowerPoint,
                 ContentId = null,
                 ContentParent = null,
                 ContentParentKind = null,
