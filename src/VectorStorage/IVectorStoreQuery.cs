@@ -13,7 +13,7 @@ public interface IVectorStoreQuery
     /// <summary>
     /// Searches the vector store.
     /// </summary>
-    Task<SearchResult> SearchAsync(string searchQuery, int numberOfRecordsBack, Expression<Func<VectorEntity, bool>>? filter, CancellationToken cancellationToken = default);
+    Task<SearchResult> SearchAsync(string searchQuery, int numberOfRecordsBack, Expression<Func<VectorEntity, bool>>? filter, double? thresholdSimilarityScoreToReturn = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves existing records matching the filter.

@@ -46,7 +46,7 @@ public class Search(IVectorStoreQuery vectorStoreQuery)
                 break;
         }
 
-        return await vectorStoreQuery.SearchAsync(options.SearchQuery, options.NumberOfRecordsBack, filter);
+        return await vectorStoreQuery.SearchAsync(options.SearchQuery, options.NumberOfRecordsBack, filter, options.ThresholdSimilarityScoreToReturn);
     }
 
     /// <summary>
@@ -56,6 +56,6 @@ public class Search(IVectorStoreQuery vectorStoreQuery)
     /// </summary>
     public async Task<SearchResult> SearchAsync(SearchOptionsAdvanced options)
     {
-        return await vectorStoreQuery.SearchAsync(options.SearchQuery, options.NumberOfRecordsBack, options.Filter);
+        return await vectorStoreQuery.SearchAsync(options.SearchQuery, options.NumberOfRecordsBack, options.Filter, options.ThresholdSimilarityScoreToReturn);
     }
 }

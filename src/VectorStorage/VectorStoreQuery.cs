@@ -28,8 +28,14 @@ public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration 
 
     /// <summary>
     /// Searches the vector store.
+    /// <param name="searchQuery">The input search query</param>
+    /// <param name="numberOfRecordsBack">The max number of records back (can be overwritten by the general vector-store configuration)</param>
+    /// <param name="filter">The Filter to apply to the search</param>
+    /// <param name="thresholdSimilarityScoreToReturn">The Threshold Score to return (Not called min/max as some vector stores see low numbers as most similar while others see high numbers as most similar. The system will check that on the fly and use the indicated score as min/max)</param>
+    /// <param name="cancellationToken">CancellationToken</param>
+    /// <returns>The SearchResult</returns>
     /// </summary>
-    public async Task<SearchResult> SearchAsync(string searchQuery, int numberOfRecordsBack, Expression<Func<VectorEntity, bool>>? filter, CancellationToken cancellationToken = default)
+    public async Task<SearchResult> SearchAsync(string searchQuery, int numberOfRecordsBack, Expression<Func<VectorEntity, bool>>? filter, double? thresholdSimilarityScoreToReturn = null, CancellationToken cancellationToken = default)
     {
         VectorStoreCollection<string, VectorEntity> collection = await GetCollectionAndEnsureItExist(cancellationToken);
         await collection.EnsureCollectionExistsAsync(cancellationToken);
@@ -51,6 +57,27 @@ public class VectorStoreQuery(VectorStore vectorStore, VectorStoreConfiguration 
         await foreach (VectorSearchResult<VectorEntity> searchResult in collection.SearchAsync(searchQuery, numberOfRecordsBack, vectorSearchOptions, cancellationToken))
         {
             result.Add(searchResult);
+        }
+
+        if (thresholdSimilarityScoreToReturn.HasValue && result.Count > 1) //In the case of only 1 record back it is impossible to know if scores go from low to high or reverse so we will always return that single value in that case
+        {
+            double? firstScore = result.First().Score;
+            double? lastScore = result.Last().Score;
+            if (firstScore < lastScore)
+            {
+                //low to high
+                result = result.Where(x => x.Score < thresholdSimilarityScoreToReturn.Value).ToList();
+            }
+            else if (lastScore < firstScore)
+            {
+                //high to low
+                result = result.Where(x => x.Score > thresholdSimilarityScoreToReturn.Value).ToList();
+            }
+            // ReSharper disable once RedundantIfElseBlock
+            else
+            {
+                //In the unlikely event that the first and the last score are the same we can't know if it is a low to high or high to low range so we include everything
+            }
         }
 
         return new SearchResult
