@@ -38,4 +38,9 @@ public class SearchOptions
     /// The Threshold Score to return (Not called min/max as some vector stores see low numbers as most similar while others see high numbers as most similar. The system will check that on the fly and use the indicated score as min/max)
     /// </summary>
     public double? ThresholdSimilarityScoreToReturn { get; set; }
+
+    /// <summary>
+    /// How Search should use caching (or leave null to not use any caching)
+    /// </summary>
+    public SearchCachingStrategy? SearchCachingStrategy { get; set; }
 }

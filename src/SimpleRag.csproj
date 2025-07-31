@@ -11,7 +11,7 @@
 		<Description>.NET Implementation of a simple and opinionated RAG solution</Description>
 		<Copyright>2025</Copyright>
 		<PackageTags>RAG .NET</PackageTags>
-		<Version>0.0.2-preview5</Version>
+		<Version>0.0.2-preview6</Version>
 		<Company>Sensum365.com</Company>
 		<PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<IncludeSymbols>true</IncludeSymbols>
@@ -48,6 +48,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.7" />
 		<PackageReference Include="Microsoft.Extensions.VectorData.Abstractions" Version="9.7.0" />
 		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.13.0" />

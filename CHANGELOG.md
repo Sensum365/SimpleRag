@@ -1,16 +1,18 @@
 # Changelog: SimpleRag
 
-## Unreleased
+## Version 0.0.2-preview6 (31st of July 2025)
 - Added option to specify ThresholdSimilarityScoreToReturn (the min/max similarity needed for the search record to be included)
+- Added DataMangement.GetData() that get all data grouped by Collection and Source
+- Added option to cache search embedding or the entire search-result
 
 ---
 
-## Version 0.0.2-preview5 (25th of July)
+## Version 0.0.2-preview5 (25th of July 2025)
 - SearchOption.SourceKind is now a string instead of a Enum to better support Custom Datasources
 
 ---
 
-## Version 0.0.2-preview4 (25th of July)
+## Version 0.0.2-preview4 (25th of July 2025)
 - Fixed the DataManagement.GetData did actually not return the data
 
 ---

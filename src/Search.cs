@@ -15,8 +15,9 @@ public class Search(IVectorStoreQuery vectorStoreQuery)
     /// Search using the provided options
     /// </summary>
     /// <param name="options">The Search options</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>The result of the search</returns>
-    public async Task<SearchResult> SearchAsync(SearchOptions options)
+    public async Task<SearchResult> SearchAsync(SearchOptions options, CancellationToken cancellationToken = default)
     {
         string collectionIdAsString = options.CollectionId.Value;
         Expression<Func<VectorEntity, bool>>? filter;
@@ -24,21 +25,17 @@ public class Search(IVectorStoreQuery vectorStoreQuery)
         {
             case { SourceKind: not null, SourceId: not null }:
             {
-                string sourceIdAsString = options.SourceId.Value.Value;
-                string sourceKindAsString = options.SourceKind;
-                filter = x => x.SourceCollectionId == collectionIdAsString && x.SourceKind == sourceKindAsString && x.SourceId == sourceIdAsString;
+                filter = x => x.SourceCollectionId == collectionIdAsString && x.SourceKind == options.SourceKind && x.SourceId == options.SourceId.Value.Value;
                 break;
             }
             case { SourceKind: not null }:
             {
-                string sourceKindAsString = options.SourceKind;
-                filter = x => x.SourceCollectionId == collectionIdAsString && x.SourceKind == sourceKindAsString;
+                filter = x => x.SourceCollectionId == collectionIdAsString && x.SourceKind == options.SourceKind;
                 break;
             }
             case { SourceId: not null }:
             {
-                string sourceIdAsString = options.SourceId.Value.Value;
-                filter = x => x.SourceCollectionId == collectionIdAsString && x.SourceId == sourceIdAsString;
+                filter = x => x.SourceCollectionId == collectionIdAsString && x.SourceId == options.SourceId.Value.Value;
                 break;
             }
             default:
@@ -46,16 +43,17 @@ public class Search(IVectorStoreQuery vectorStoreQuery)
                 break;
         }
 
-        return await vectorStoreQuery.SearchAsync(options.SearchQuery, options.NumberOfRecordsBack, filter, options.ThresholdSimilarityScoreToReturn);
+        return await vectorStoreQuery.SearchAsync(options.SearchQuery, options.NumberOfRecordsBack, filter, options.ThresholdSimilarityScoreToReturn, options.SearchCachingStrategy, cancellationToken);
     }
 
     /// <summary>
     /// Search using the provided advanced filter options.
     /// <param name="options">The Advanced Search Options</param>
+    /// <param name="cancellationToken">CancellationToken</param>
     /// <returns>The result of the search</returns>
     /// </summary>
-    public async Task<SearchResult> SearchAsync(SearchOptionsAdvanced options)
+    public async Task<SearchResult> SearchAsync(SearchOptionsAdvanced options, CancellationToken cancellationToken = default)
     {
-        return await vectorStoreQuery.SearchAsync(options.SearchQuery, options.NumberOfRecordsBack, options.Filter, options.ThresholdSimilarityScoreToReturn);
+        return await vectorStoreQuery.SearchAsync(options.SearchQuery, options.NumberOfRecordsBack, options.Filter, options.ThresholdSimilarityScoreToReturn, cancellationToken: cancellationToken);
     }
 }

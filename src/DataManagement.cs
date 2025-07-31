@@ -13,6 +13,34 @@ namespace SimpleRag;
 public class DataManagement(IVectorStoreCommand vectorStoreCommand, IVectorStoreQuery vectorStoreQuery)
 {
     /// <summary>
+    /// Get all Data in vector store grouped by Collections and Sources
+    /// </summary>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<Collection[]> GetDataAsync(CancellationToken cancellationToken = default)
+    {
+        List<Collection> data = [];
+        VectorEntity[] entities = await vectorStoreQuery.GetExistingAsync(null, cancellationToken);
+        IEnumerable<IGrouping<string, VectorEntity>> collectionIds = entities.GroupBy(x => x.SourceCollectionId);
+        foreach (IGrouping<string, VectorEntity> collectionId in collectionIds)
+        {
+            IEnumerable<IGrouping<string, VectorEntity>> sourceIds = collectionId.GroupBy(x => x.SourceId);
+
+            data.Add(new Collection
+            {
+                Id = new CollectionId(collectionId.Key),
+                Sources = sourceIds.Select(x => new Source
+                {
+                    Id = new SourceId(x.Key),
+                    VectorEntities = x.ToArray()
+                }).ToArray(),
+            });
+        }
+
+        return data.ToArray();
+    }
+
+    /// <summary>
     /// Get everything in a specific Datasource
     /// </summary>
     /// <param name="collectionId">The id of the collection the source is in</param>

@@ -24,6 +24,7 @@ public static class ServiceCollectionExtensions
         VectorStoreConfiguration configuration,
         Func<IServiceProvider, T>? vectorStoreFactory) where T : Microsoft.Extensions.VectorData.VectorStore
     {
+        services.AddMemoryCache();
         services.AddScoped<IVectorStoreQuery, VectorStoreQuery>();
         services.AddScoped<IVectorStoreCommand, VectorStoreCommand>();
         services.AddSingleton(configuration);
