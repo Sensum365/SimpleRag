@@ -1,6 +1,3 @@
-> [!Caution]
-> This Repo is in an Early Preview state, meaning that everything is subject to change
-
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/sensum365/SimpleRag/Build.yml?style=for-the-badge)](https://github.com/sensum365/SimpleRag/actions)
 [![GitHub Issues or Pull Requests by label](https://img.shields.io/github/issues/sensum365/SimpleRag/bug?style=for-the-badge&label=Bugs)](https://github.com/sensum365/SimpleRag/issues?q=is%3Aissue%20state%3Aopen%20label%3Abug)
 [![Libraries.io dependency status for GitHub repo](https://img.shields.io/librariesio/github/sensum365/SimpleRag?style=for-the-badge)](https://github.com/sensum365/SimpleRag/network/dependencies)

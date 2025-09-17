@@ -2,6 +2,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using JetBrains.Annotations;
 using SimpleRag.DataProviders.Models;
+using System.Diagnostics.CodeAnalysis;
 
 namespace SimpleRag.DataSources.Word.Chunker;
 
@@ -9,6 +10,7 @@ namespace SimpleRag.DataSources.Word.Chunker;
 /// Chunker that extracts text from Word documents
 /// </summary>
 [PublicAPI]
+[Experimental("RAG001")]
 public class WordChunker : IWordChunker
 {
     /// <summary>

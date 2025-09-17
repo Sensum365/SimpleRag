@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,6 +13,7 @@ namespace SimpleRag.DataSources.Word;
 /// Represent a Word datasource
 /// </summary>
 [PublicAPI]
+[Experimental("RAG001")]
 public class WordDataSource : DataSourceFileBased
 {
     private readonly IWordChunker _chunker;

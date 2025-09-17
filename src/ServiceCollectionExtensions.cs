@@ -35,9 +35,15 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<ICSharpChunker, CSharpChunker>();
         services.AddScoped<IMarkdownChunker, MarkdownChunker>();
+#pragma warning disable RAG003
         services.AddScoped<IPdfChunker, PdfChunker>();
+#pragma warning restore RAG003
+#pragma warning disable RAG002
         services.AddScoped<IPowerPointChunker, PowerPointChunker>();
+#pragma warning restore RAG002
+#pragma warning disable RAG001
         services.AddScoped<IWordChunker, WordChunker>();
+#pragma warning restore RAG001
         services.AddScoped<Ingestion>();
         services.AddScoped<Search>();
         services.AddScoped<DataManagement>();

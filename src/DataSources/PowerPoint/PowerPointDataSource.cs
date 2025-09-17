@@ -1,10 +1,11 @@
-using System.Text;
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 using SimpleRag.DataProviders.Models;
 using SimpleRag.DataSources.PowerPoint.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
 
 namespace SimpleRag.DataSources.PowerPoint;
 
@@ -12,6 +13,7 @@ namespace SimpleRag.DataSources.PowerPoint;
 /// Represent a PowerPoint datasource
 /// </summary>
 [PublicAPI]
+[Experimental("RAG002")]
 public class PowerPointDataSource : DataSourceFileBased
 {
     private readonly IPowerPointChunker _chunker;

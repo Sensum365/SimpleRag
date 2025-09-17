@@ -4,6 +4,7 @@ using SimpleRag.DataProviders.Models;
 using SimpleRag.DataSources.Pdf.Chunker;
 using SimpleRag.VectorStorage;
 using SimpleRag.VectorStorage.Models;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace SimpleRag.DataSources.Pdf;
@@ -12,6 +13,7 @@ namespace SimpleRag.DataSources.Pdf;
 /// Represent a PDF Datasource
 /// </summary>
 [PublicAPI]
+[Experimental("RAG003")]
 public class PdfDataSource : DataSourceFileBased
 {
     private readonly IPdfChunker _chunker;

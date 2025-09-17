@@ -1,5 +1,10 @@
 # Changelog: SimpleRag
 
+## Version 1.0.0 (17th of September 2025)
+- C# and Markdown Datasources are now stable so preview label is reomved and package bumped to 1.0 (Please note PDF, PowerPoint and Word Datasources are marked as Experimental Datasources)
+
+---
+
 ## Version 0.0.2-preview6 (31st of July 2025)
 - Added option to specify ThresholdSimilarityScoreToReturn (the min/max similarity needed for the search record to be included)
 - Added DataMangement.GetData() that get all data grouped by Collection and Source

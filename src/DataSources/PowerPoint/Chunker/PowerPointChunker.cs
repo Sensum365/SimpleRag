@@ -3,6 +3,7 @@ using DocumentFormat.OpenXml.Presentation;
 using JetBrains.Annotations;
 using SimpleRag.DataProviders.Models;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using A = DocumentFormat.OpenXml.Drawing;
@@ -13,6 +14,7 @@ namespace SimpleRag.DataSources.PowerPoint.Chunker;
 /// Chunker that extracts text from PowerPoint presentations
 /// </summary>
 [PublicAPI]
+[Experimental("RAG002")]
 public class PowerPointChunker : IPowerPointChunker
 {
     /// <summary>
