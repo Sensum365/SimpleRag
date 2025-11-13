@@ -65,9 +65,9 @@ public class GitHubFilesDataProvider : IFileContentProvider
         GitHubQuery gitHubQuery = new(_credentials);
 
         onProgressNotification?.Invoke(Notification.Create("Exploring GitHub"));
-        var gitHubClient = await gitHubQuery.GetGitHubClientAsync();
+        GitHubClient gitHubClient = await gitHubQuery.GetGitHubClientAsync();
 
-        var commit = await gitHubQuery.GetLatestCommitAsync(gitHubClient, GitHubRepository);
+        Commit commit = await gitHubQuery.GetLatestCommitAsync(gitHubClient, GitHubRepository);
         cancellationToken.ThrowIfCancellationRequested();
         if (LastCommitTimestamp.HasValue && commit.Committer.Date <= LastCommitTimestamp.Value)
         {
@@ -75,7 +75,7 @@ public class GitHubFilesDataProvider : IFileContentProvider
             return null;
         }
 
-        var treeResponse = await gitHubQuery.GetTreeAsync(gitHubClient, commit, GitHubRepository, source.Recursive);
+        TreeResponse treeResponse = await gitHubQuery.GetTreeAsync(gitHubClient, commit, GitHubRepository, source.Recursive);
         string fileExtensionType = "." + source.FileExtensionType;
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -102,7 +102,7 @@ public class GitHubFilesDataProvider : IFileContentProvider
         int counter = 0;
         foreach (string path in items.Select(x => x.Path))
         {
-            var pathWithoutRoot = path.Replace(source.Path, string.Empty);
+            string pathWithoutRoot = path.Replace(source.Path, string.Empty);
             counter++;
             if (source.IgnoreFile(path))
             {
@@ -114,7 +114,7 @@ public class GitHubFilesDataProvider : IFileContentProvider
             cancellationToken.ThrowIfCancellationRequested();
 
             onProgressNotification?.Invoke(Notification.Create("Downloading file-content from GitHub", counter, items.Length, pathWithoutRoot));
-            var bytes = await gitHubQuery.GetFileContentAsync(gitHubClient, GitHubRepository, path);
+            byte[]? bytes = await gitHubQuery.GetFileContentAsync(gitHubClient, GitHubRepository, path);
             if (bytes == null)
             {
                 continue;

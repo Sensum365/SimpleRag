@@ -22,16 +22,16 @@ internal class GitHubQuery(GitHubCredentials credentials)
         if (!string.IsNullOrWhiteSpace(credentials.AppId) && !string.IsNullOrWhiteSpace(credentials.PrivateKey))
         {
             string jwtToken = GenerateJwtToken(credentials.PrivateKey, credentials.AppId);
-            var githubClient = new GitHubClient(new ProductHeaderValue("SimpleRag"))
+            GitHubClient githubClient = new GitHubClient(new ProductHeaderValue("SimpleRag"))
             {
                 Credentials = new Credentials(jwtToken, AuthenticationType.Bearer)
             };
 
-            var installations = await githubClient.GitHubApps.GetAllInstallationsForCurrent();
+            IReadOnlyList<Installation>? installations = await githubClient.GitHubApps.GetAllInstallationsForCurrent();
 
             // Get installation token for the first installation
-            var installationId = installations[0].Id;
-            var installationToken = await githubClient.GitHubApps.CreateInstallationToken(installationId);
+            long installationId = installations[0].Id;
+            AccessToken? installationToken = await githubClient.GitHubApps.CreateInstallationToken(installationId);
 
             githubClient.Credentials = new Credentials(installationToken.Token);
             return githubClient;
@@ -46,19 +46,19 @@ internal class GitHubQuery(GitHubCredentials credentials)
 
             try
             {
-                var rsaParameters = rsa.ExportParameters(true); // Export key material
-                var now = DateTimeOffset.UtcNow;
+                RSAParameters rsaParameters = rsa.ExportParameters(true); // Export key material
+                DateTimeOffset now = DateTimeOffset.UtcNow;
 
                 // Use the key material to create a new independent RSA key
-                var independentRsa = RSA.Create();
+                RSA independentRsa = RSA.Create();
                 independentRsa.ImportParameters(rsaParameters);
 
                 // Create the signing key and credentials
-                var rsaSecurityKey = new RsaSecurityKey(independentRsa);
-                var signingCredentials = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
+                RsaSecurityKey rsaSecurityKey = new RsaSecurityKey(independentRsa);
+                SigningCredentials signingCredentials = new SigningCredentials(rsaSecurityKey, SecurityAlgorithms.RsaSha256);
 
                 // Create the JWT Header and Payload
-                var securityToken = new JwtSecurityToken(
+                JwtSecurityToken securityToken = new JwtSecurityToken(
                     issuer: appId,
                     claims: null,
                     notBefore: now.UtcDateTime,

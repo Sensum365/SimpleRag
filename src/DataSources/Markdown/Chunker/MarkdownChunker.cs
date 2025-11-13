@@ -20,7 +20,7 @@ namespace SimpleRag.DataSources.Markdown.Chunker
         public MarkdownChunk[] GetChunks(string content, int level = 3, string? linesToIgnorePatterns = null, int? ignoreIfLessThanThisAmountOfChars = null)
         {
             List<MarkdownChunk> chunks = [];
-            var mdContentLine = content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries);
+            string[] mdContentLine = content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries);
 
             string sectionId = string.Empty;
             string sectionTitle = string.Empty;
@@ -83,7 +83,7 @@ namespace SimpleRag.DataSources.Markdown.Chunker
             string PrepareHeader(string id)
             {
                 List<string> charsToReplaceInId = [" ", "!", "\"", "#", "$", "%", "&", "'", "(", ")", "*", "+", ",", ".", "/", ":", ";", "<", "=", ">", "?", "@", "[", "\\", "]", "^", "`", "{", "|", "}", "~"];
-                foreach (var toReplace in charsToReplaceInId)
+                foreach (string toReplace in charsToReplaceInId)
                 {
                     id = id.Replace(toReplace, "-");
                 }

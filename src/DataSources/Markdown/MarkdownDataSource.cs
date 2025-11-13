@@ -75,7 +75,7 @@ public class MarkdownDataSource : DataSourceFileBased
             return;
         }
 
-        var newLine = Environment.NewLine;
+        string newLine = Environment.NewLine;
         Func<MarkdownChunk, string> contentFormatBuilder = ContentFormatBuilder ?? (chunk =>
         {
             StringBuilder contentBuilder = new();
@@ -87,10 +87,10 @@ public class MarkdownDataSource : DataSourceFileBased
 
         List<VectorEntity> entries = [];
 
-        foreach (var file in files)
+        foreach (FileContent file in files)
         {
             string fileContent = file.GetContentAsUtf8String();
-            var numberOfLine = fileContent.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
+            int numberOfLine = fileContent.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
             if (IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;
@@ -154,7 +154,10 @@ public class MarkdownDataSource : DataSourceFileBased
                     SourceCollectionId = CollectionId.Value,
                     SourcePath = file.PathWithoutRoot,
                     ContentKind = "Markdown",
-                    Content = $"{fileNameWithoutExtension}{newLine}---{newLine}{fileContent}", //todo - support Content format builder
+                    Content = contentFormatBuilder.Invoke(new MarkdownChunk(string.Empty, fileNameWithoutExtension, fileContent)
+                    {
+                        SourcePath = file.PathWithoutRoot
+                    }),
                     ContentName = fileNameWithoutExtension,
                     ContentId = null,
                     ContentParent = null,

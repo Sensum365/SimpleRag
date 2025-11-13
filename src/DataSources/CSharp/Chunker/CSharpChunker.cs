@@ -21,7 +21,7 @@ public class CSharpChunker : ICSharpChunker
     public List<CSharpChunk> GetChunks(string code, CSharpChunkerOptions? options = null)
     {
         SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
-        var root = tree.GetRoot();
+        SyntaxNode root = tree.GetRoot();
 
         List<CSharpChunk> entries = [];
         entries.AddRange(ProcessTypeDeclaration<ClassDeclarationSyntax>(root, CSharpChunkKind.Class, options));
@@ -49,7 +49,7 @@ public class CSharpChunker : ICSharpChunker
             string ns = GetNamespace(node);
             string xmlSummary = GetXmlSummary(node);
             string name = node.Identifier.ValueText;
-            var parent = GetParentFromNesting(node.Parent);
+            string? parent = GetParentFromNesting(node.Parent);
             CSharpChunkKind parentKind = GetParentType(node.Parent);
             result.Add(new CSharpChunk(CSharpChunkKind.Interface, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], root));
         }
@@ -74,7 +74,7 @@ public class CSharpChunker : ICSharpChunker
             string ns = GetNamespace(node);
             string xmlSummary = GetXmlSummary(node);
             string name = node.Identifier.ValueText;
-            var parent = GetParentFromNesting(node.Parent);
+            string? parent = GetParentFromNesting(node.Parent);
             CSharpChunkKind parentKind = GetParentType(node.Parent);
             result.Add(new CSharpChunk(CSharpChunkKind.Delegate, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], node));
         }
@@ -96,7 +96,7 @@ public class CSharpChunker : ICSharpChunker
             string ns = GetNamespace(node);
             string xmlSummary = GetXmlSummary(node);
             string name = node.Identifier.ValueText;
-            var parent = GetParentFromNesting(node.Parent);
+            string? parent = GetParentFromNesting(node.Parent);
             CSharpChunkKind parentKind = GetParentType(node.Parent);
             result.Add(new CSharpChunk(CSharpChunkKind.Enum, ns, parent, parentKind, name, xmlSummary, node.ToString(), [], node));
         }
@@ -107,7 +107,7 @@ public class CSharpChunker : ICSharpChunker
     private List<CSharpChunk> ProcessTypeDeclaration<T>(SyntaxNode root, CSharpChunkKind kind, CSharpChunkerOptions? options) where T : TypeDeclarationSyntax
     {
         List<CSharpChunk> result = [];
-        var nodes = root.DescendantNodes().OfType<T>().ToArray();
+        T[] nodes = root.DescendantNodes().OfType<T>().ToArray();
         foreach (T node in nodes)
         {
             if (!IncludeMember(node.Modifiers, options))
@@ -153,7 +153,7 @@ public class CSharpChunker : ICSharpChunker
                 ConstructorDeclarationSyntax content = options?.IncludeMemberBodies == true ? constructor : constructor.WithBody(null);
                 string parent = node.Identifier.ValueText;
                 CSharpChunkKind parentKind = kind;
-                var dependencies = constructor.ParameterList.Parameters.Select(x => x.Type?.ToString() ?? "unknown").ToList();
+                List<string> dependencies = constructor.ParameterList.Parameters.Select(x => x.Type?.ToString() ?? "unknown").ToList();
                 dependencies = RemoveDuplicateAndTrivialDependencies(dependencies);
                 result.Add(new CSharpChunk(CSharpChunkKind.Constructor, ns, parent, parentKind, name, xmlSummary, content.ToString(), dependencies, constructor));
             }
@@ -183,7 +183,7 @@ public class CSharpChunker : ICSharpChunker
                 if (node.BaseList != null)
                 {
                     bool first = true;
-                    foreach (var @base in node.BaseList.Types)
+                    foreach (BaseTypeSyntax @base in node.BaseList.Types)
                     {
                         string separator = ", ";
                         if (first)
@@ -240,7 +240,7 @@ public class CSharpChunker : ICSharpChunker
                 }
 
                 sb.AppendLine("}");
-                var parent = GetParentFromNesting(node.Parent);
+                string? parent = GetParentFromNesting(node.Parent);
                 CSharpChunkKind parentKind = GetParentType(node.Parent);
                 dependencies = RemoveDuplicateAndTrivialDependencies(dependencies);
                 result.Add(new CSharpChunk(kind, ns, parent, parentKind, name, GetXmlSummary(node), sb.ToString(), dependencies, node));
@@ -413,7 +413,7 @@ public class CSharpChunker : ICSharpChunker
         HashSet<string> trivialTypes = new(StringComparer.OrdinalIgnoreCase);
 
         // Add base types
-        foreach (var type in baseTypes)
+        foreach (string type in baseTypes)
         {
             trivialTypes.Add(type);
 
@@ -421,7 +421,7 @@ public class CSharpChunker : ICSharpChunker
             trivialTypes.Add($"{type}?");
 
             // Add collection forms
-            foreach (var collection in collectionTemplates)
+            foreach (string collection in collectionTemplates)
             {
                 trivialTypes.Add(string.Format(collection, type));
             }
@@ -431,7 +431,7 @@ public class CSharpChunker : ICSharpChunker
         return dependencies
             .Where(dep =>
             {
-                var typeName = dep.Trim();
+                string typeName = dep.Trim();
                 // Remove nullable marker
                 if (typeName.EndsWith("?"))
                     typeName = typeName.TrimEnd('?');

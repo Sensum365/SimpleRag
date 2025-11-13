@@ -64,7 +64,7 @@ public class CSharpDataSource : DataSourceFileBased
         foreach (DataProviders.Models.FileContent file in files)
         {
             string content = file.GetContentAsUtf8String();
-            var numberOfLine = content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
+            int numberOfLine = content.Split(["\n"], StringSplitOptions.RemoveEmptyEntries).Length;
             if (IgnoreFileIfMoreThanThisNumberOfLines.HasValue && numberOfLine > IgnoreFileIfMoreThanThisNumberOfLines)
             {
                 continue;

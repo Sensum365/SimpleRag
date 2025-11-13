@@ -39,7 +39,7 @@ public class LocalFilesDataProvider : IFileContentProvider
 
             counter++;
             onProgressNotification?.Invoke(Notification.Create("Parsing Local files from Disk", counter, files.Length));
-            var pathWithoutRoot = path.Replace(source.Path, string.Empty);
+            string pathWithoutRoot = path.Replace(source.Path, string.Empty);
             byte[] bytes = await File.ReadAllBytesAsync(path, cancellationToken);
             result.Add(new FileContent(path, bytes, pathWithoutRoot));
         }

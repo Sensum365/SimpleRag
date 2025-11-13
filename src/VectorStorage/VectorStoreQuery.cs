@@ -166,7 +166,7 @@ public class VectorStoreQuery(IEmbeddingGenerator<string, Embedding<float>> embe
         string normalizedExpression = expressionString.Trim().ToLowerInvariant();
 
         // 3. Hash the normalized string to get a fixed-length key.
-        using (var sha256 = SHA256.Create())
+        using (SHA256 sha256 = SHA256.Create())
         {
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(normalizedExpression));
             return BitConverter.ToString(hashBytes).Replace("-", "").ToLowerInvariant();

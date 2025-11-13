@@ -21,7 +21,7 @@ public class SearchResult
     {
         StringBuilder sb = new();
         sb.AppendLine("<search_results>");
-        foreach (var entity in Entities)
+        foreach (VectorSearchResult<VectorEntity> entity in Entities)
         {
             sb.AppendLine(entity.Record.GetAsString(citationBuilder));
         }

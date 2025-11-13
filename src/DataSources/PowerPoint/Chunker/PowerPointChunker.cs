@@ -28,22 +28,22 @@ public class PowerPointChunker : IPowerPointChunker
         using MemoryStream ms = new(file.Bytes);
         using PresentationDocument presentation = PresentationDocument.Open(ms, false);
 
-        var presentationPart = presentation.PresentationPart;
+        PresentationPart? presentationPart = presentation.PresentationPart;
         if (presentationPart == null)
         {
             return [];
         }
 
         // Get all slide parts from the presentation
-        var slideParts = presentationPart.SlideParts.ToList();
+        List<SlidePart> slideParts = presentationPart.SlideParts.ToList();
         if (!slideParts.Any())
         {
             return [];
         }
 
         // Create dictionary mapping between slide ID and slide part
-        var slidePartMap = new Dictionary<string, SlidePart>();
-        foreach (var slidePart in slideParts)
+        Dictionary<string, SlidePart> slidePartMap = new Dictionary<string, SlidePart>();
+        foreach (SlidePart slidePart in slideParts)
         {
             // Get relationship ID of slide part
             string relId = presentationPart.GetIdOfPart(slidePart);
@@ -51,7 +51,7 @@ public class PowerPointChunker : IPowerPointChunker
         }
 
         // Get ordered slide IDs from presentation
-        var slideIds = presentationPart.Presentation.SlideIdList?.ChildElements
+        List<SlideId>? slideIds = presentationPart.Presentation.SlideIdList?.ChildElements
             .OfType<SlideId>()
             .ToList();
 
@@ -64,10 +64,10 @@ public class PowerPointChunker : IPowerPointChunker
         int totalSlides = slideIds.Count;
         int slideNumber = 1;
 
-        foreach (var slideId in slideIds)
+        foreach (SlideId slideId in slideIds)
         {
             string? relationshipId = slideId.RelationshipId?.Value;
-            if (string.IsNullOrEmpty(relationshipId) || !slidePartMap.TryGetValue(relationshipId, out var slidePart))
+            if (string.IsNullOrEmpty(relationshipId) || !slidePartMap.TryGetValue(relationshipId, out SlidePart? slidePart))
             {
                 slideNumber++;
                 continue;

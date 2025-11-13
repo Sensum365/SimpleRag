@@ -34,7 +34,7 @@ public class VectorStoreCommand(VectorStore vectorStore, IVectorStoreQuery vecto
     {
         try
         {
-            var collection = await GetCollectionAndEnsureItExist(cancellationToken);
+            VectorStoreCollection<string, VectorEntity> collection = await GetCollectionAndEnsureItExist(cancellationToken);
             await collection.UpsertAsync(entity, cancellationToken);
         }
         catch (Exception e)
@@ -67,7 +67,7 @@ public class VectorStoreCommand(VectorStore vectorStore, IVectorStoreQuery vecto
     public async Task DeleteAsync(Expression<Func<VectorEntity, bool>> filter, CancellationToken cancellationToken = default)
     {
         List<string> keysToDelete = [];
-        var collection = await GetCollectionAndEnsureItExist(cancellationToken);
+        VectorStoreCollection<string, VectorEntity> collection = await GetCollectionAndEnsureItExist(cancellationToken);
         await foreach (VectorEntity entity in collection.GetAsync(filter, int.MaxValue, new FilteredRecordRetrievalOptions<VectorEntity>
                        {
                            IncludeVectors = false
@@ -84,7 +84,7 @@ public class VectorStoreCommand(VectorStore vectorStore, IVectorStoreQuery vecto
     /// </summary>
     public async Task DeleteAsync(IEnumerable<string> idsToDelete, CancellationToken cancellationToken = default)
     {
-        var collection = await GetCollectionAndEnsureItExist(cancellationToken);
+        VectorStoreCollection<string, VectorEntity> collection = await GetCollectionAndEnsureItExist(cancellationToken);
         await collection.DeleteAsync(idsToDelete, cancellationToken);
     }
 
@@ -103,14 +103,14 @@ public class VectorStoreCommand(VectorStore vectorStore, IVectorStoreQuery vecto
         List<string> idsToKeep = [];
 
         VectorEntity[] entities = vectorEntities.ToArray();
-        foreach (var entity in entities)
+        foreach (VectorEntity entity in entities)
         {
             counter++;
 
             onProgressNotification?.Invoke(Notification.Create("Embedding Data", counter, entities.Length));
 
             string contentCompareKey = entity.GetContentCompareKey();
-            var existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == contentCompareKey);
+            VectorEntity? existing = existingData.FirstOrDefault(x => x.GetContentCompareKey() == contentCompareKey);
             if (existing == null)
             {
                 await RetryHelper.ExecuteWithRetryAsync(async () => { await UpsertAsync(entity, cancellationToken); }, 3, TimeSpan.FromSeconds(30));
@@ -121,7 +121,7 @@ public class VectorStoreCommand(VectorStore vectorStore, IVectorStoreQuery vecto
             }
         }
 
-        var idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
+        List<string> idsToDelete = existingData.Select(x => x.Id).Except(idsToKeep).ToList();
         if (idsToDelete.Count != 0)
         {
             onProgressNotification?.Invoke(Notification.Create($"Removing {idsToDelete.Count} entities that are no longer in source..."));

@@ -1,5 +1,10 @@
 # Changelog: SimpleRag
 
+## Version 1.0.1 (13th of November 2025)
+- Fixed that Markdown Sources that had a line-number under min chunking size did not use the `ContentFormatBuilder`
+
+---
+
 ## Version 1.0.0 (17th of September 2025)
 - C# and Markdown Datasources are now stable so preview label is reomved and package bumped to 1.0 (Please note PDF, PowerPoint and Word Datasources are marked as Experimental Datasources)
 

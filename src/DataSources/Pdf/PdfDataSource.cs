@@ -57,7 +57,7 @@ public class PdfDataSource : DataSourceFileBased
         }
 
 
-        var contentFormatBuilder = ContentFormatBuilder ?? (chunk =>
+        Func<PdfChunk, string> contentFormatBuilder = ContentFormatBuilder ?? (chunk =>
         {
             StringBuilder contentBuilder = new();
             contentBuilder.AppendLine($"<pdf_page page_number=\"{chunk.Page}\" total_pages=\"{chunk.TotalPages}\" file_name=\"{chunk.Name}\" source_path=\"{chunk.SourcePath}\">");
