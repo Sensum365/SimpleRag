@@ -38,7 +38,7 @@ builder.Services.AddSimpleRag(vectorStoreConfiguration, options => new SqlServer
 }));
 ```
 
-### Step 3: Ingest Data into your VectorStore (in this sample the [TrelloDotNet](https://github.com/rwjdk/TrelloDotNet) open-source repo)
+### Step 3: Ingest Data into your VectorStore (in this sample the [TrelloDotNet](https://github.com/rwjdk/trello-dotnet) open-source repo)
 ```csharp
 public class IngestionExample(Ingestion ingestion, IServiceProvider serviceProvider)
 {
